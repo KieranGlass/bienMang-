@@ -8,7 +8,7 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         print("Initializing MainWindow...")
-        self.title("Bien Mangé")
+        self.title("Bien Manger")
         self.geometry("1400x900")
         self.deiconify()
         self.attributes('-topmost', True)
@@ -49,7 +49,7 @@ class MainWindow(tk.Tk):
 
     def create_title_label(self):
         # Create a title label at the top of the window
-        title_label = tk.Label(self, text="Bien Mangé", font=("Helvetica", 24))
+        title_label = tk.Label(self, text="Bien Manger", font=("Helvetica", 24))
         title_label.pack(pady=20)  # Adds some space above the title
 
 def main():
