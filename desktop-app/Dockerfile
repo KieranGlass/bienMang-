@@ -8,11 +8,15 @@ RUN apt-get update -qq && \
     libjpeg-dev zlib1g-dev libfreetype6-dev \
     tcl-dev tk-dev xvfb x11-xserver-utils \
     xdotool x11-utils x11vnc \
+    libffi-dev sqlite3 libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Ensure python points to python3
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir \
-    PyQt5 PyQtWebEngine Pillow
+    PyQt5 PyQtWebEngine Pillow sqlalchemy bcrypt
 
 # Set VNC password
 RUN mkdir -p /root/.vnc && \
@@ -20,7 +24,9 @@ RUN mkdir -p /root/.vnc && \
     chmod 600 /root/.vnc/passwd
 
 WORKDIR /app
+# Copy both the desktop app and database directories into the container
 COPY . .
+
 
 RUN ls -l /app
 
@@ -28,4 +34,4 @@ RUN ls -l /app
 ENV DISPLAY=:99
 
 # Run the Xvfb display server and your Tkinter application
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1400x900x24 & sleep 3 && x11vnc -forever -usepw -create -display :99 & python3 src/main_window.py"]
+CMD ["sh", "-c", "python3 /app/database/setup_db.py && Xvfb :99 -screen 0 1400x900x24 & sleep 3 && x11vnc -forever -usepw -create -display :99 & python3 src/dashboard.py"]

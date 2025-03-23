@@ -6,7 +6,7 @@ from tkinter import ttk
 from pathlib import Path
 
 
-class MainWindow(tk.Tk):
+class Dashboard(tk.Tk):
     
     def __init__(self):
         super().__init__()

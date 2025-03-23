@@ -1,0 +1,129 @@
+import sqlite3
+import bcrypt
+from contextlib import closing
+
+DB_PATH = '/database/bien-manger.db'  # This is where SQLite database will be created
+
+
+def get_db_connection():
+    """
+    Returns a connection object to the SQLite database.
+    """
+    conn = sqlite3.connect(DB_PATH)  # Connect to the SQLite database
+    return conn
+
+
+def create_tables():
+    """
+    Creates the necessary tables in the database.
+    This function should be run once to initialize the database.
+    """
+    conn = get_db_connection()
+    try:
+        with closing(conn.cursor()) as cursor:
+            # Create the users table for login/authentication
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL
+            )
+            ''')
+
+            # Insert a user (for development purposes)
+            cursor.execute('''
+            INSERT OR IGNORE INTO users (username, password)
+                VALUES ('master', '1')
+            ''')
+
+            # Create the children table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS children (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                birth_date TEXT
+            )
+            ''')
+
+            # Commit the changes and leave the connection open for further operations
+            conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    
+    finally:
+        # Close the connection after operations are done
+        conn.close()
+
+
+def create_user(username, password):
+    """
+    Create a new user and save to the users table with a hashed password.
+    """
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
+        conn.commit()
+        conn.close()
+
+
+def authenticate_user(username, password):
+    """
+    Authenticate a user by comparing hashed passwords.
+    """
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
+        stored_pw = cursor.fetchone()
+
+    if stored_pw and bcrypt.checkpw(password.encode('utf-8'), stored_pw[0]):
+        return True  # Authentication successful
+    return False  # Authentication failed
+
+
+def get_all_children():
+    """
+    Fetch all children records from the database.
+    This can be used for the mobile app or any future features.
+    """
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT * FROM children")
+        children = cursor.fetchall()
+    return children
+
+
+# Inserting a new child record
+def add_child(first_name, last_name, birth_date, admission_date, notes):
+    """
+    Add a child to the database.
+    """
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute('''
+        INSERT INTO children (first_name, last_name, birth_date, admission_date, notes)
+        VALUES (?, ?, ?, ?, ?)
+        ''', (first_name, last_name, birth_date, admission_date, notes))
+        conn.commit()
+        conn.close()
+
+
+# Function to print database contents for testing
+def print_all_users():
+    """
+    This function will print all the users, for testing purposes.
+    """
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT * FROM users")
+        users = cursor.fetchall()
+        for user in users:
+            print(dict(user))
+
+
+if __name__ == '__main__':
+    create_tables()  # Set up tables on first run (this can also be done in your Docker entrypoint)
+    print("Database setup completed.")

@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import sqlite3
 import sys
 
 class LoginWindow(tk.Tk):
@@ -45,11 +46,35 @@ class LoginWindow(tk.Tk):
         self.login_frame.grid_columnconfigure(0, weight=1)
 
     def login(self):
+        # First, check if both fields are filled in
         if self.username_entry.get() and self.password_entry.get():
-            self.destroy()
-            # Create and run MainWindow here
-            from main_window import MainWindow
-            MainWindow().mainloop()
+            # Get username and password input values
+            username = self.username_entry.get()
+            password = self.password_entry.get()
+
+            # Connect to the database
+            conn = sqlite3.connect('/database/bien-manger.db')  # Update with the path to your database
+            cursor = conn.cursor()
+
+            # Query to check if user exists with the given username and password
+            cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+            user = cursor.fetchone()  # Fetch the user from the database
+
+            # Check if the user exists
+            if user:
+                # User exists, proceed to the main window
+                self.destroy()  # Close the login window
+                from dashboard import Dashboard  # Import the MainWindow class
+                Dashboard().mainloop()  # Run the main window
+            else:
+                #User does not exist, show an error
+                error_label = ttk.Label(self.login_frame, text="Invalid username or password", foreground="red")
+                error_label.grid(row=6, column=0)
+
+            # Close the database connection
+            conn.close()
+
         else:
+            # If either username or password field is empty, show the "Please fill in both fields" message
             error_label = ttk.Label(self.login_frame, text="Please fill in both fields", foreground="red")
             error_label.grid(row=6, column=0)

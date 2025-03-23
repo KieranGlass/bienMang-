@@ -10,6 +10,7 @@ services:
       - "5900:5900"  # Expose VNC port to the host
     volumes:
       - ~/.Xauthority:/root/.Xauthority:rw  # Ensure VNC can connect to X display
+      - ./database:/database  # Map local directory 'database' to '/database' inside container
     restart: unless-stopped
     stdin_open: true  # Keep stdin open for interactive apps
     tty: true  # Allocate a pseudo-TTY
