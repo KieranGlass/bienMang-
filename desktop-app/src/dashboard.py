@@ -3,7 +3,13 @@ import tkinter as tk
 from login import LoginWindow
 from PIL import Image, ImageTk
 from tkinter import ttk
-from pathlib import Path
+
+from children import Children
+from menus import Menus
+from reports import Reports
+from registers import Registers
+from today import Today
+from admin import Setting
 
 
 class Dashboard(tk.Tk):
@@ -138,26 +144,56 @@ class Dashboard(tk.Tk):
 
     def show_today(self):
         print("Showing today")
+
+        self.withdraw()
+        
+        today_window = Today(self)  
+        today_window.mainloop()  
             
 
     def show_children(self):
         print("Showing children")
+
+        self.withdraw()
+
+        children_window = Children(self)  # Initialize the Children window class
+        children_window.mainloop()  # Start the Tkinter event loop for the new window
            
 
     def show_registers(self):
         print("Showing registers")
+
+        self.withdraw()
+        
+        registers_window = Registers(self)  
+        registers_window.mainloop() 
             
 
     def show_menus(self):
         print("Showing menus")
+
+        self.withdraw()
+        
+        menus_window = Menus(self)  
+        menus_window.mainloop() 
             
 
     def show_reports(self):
         print("Showing reports")
+
+        self.withdraw()
+        
+        reports_window = Reports(self)  
+        reports_window.mainloop() 
             
 
     def show_settings(self):
         print("Showing settings")
+
+        self.withdraw()
+        
+        settings_window = Setting(self)  
+        settings_window.mainloop() 
             
 
 def main():
