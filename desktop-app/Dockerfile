@@ -12,7 +12,7 @@ RUN apt-get update -qq && \
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir \
-    PyQt5 PyQtWebEngine
+    PyQt5 PyQtWebEngine Pillow
 
 # Set VNC password
 RUN mkdir -p /root/.vnc && \
@@ -20,8 +20,9 @@ RUN mkdir -p /root/.vnc && \
     chmod 600 /root/.vnc/passwd
 
 WORKDIR /app
-COPY requirements.txt . 
 COPY . .
+
+RUN ls -l /app
 
 # Set the display environment variable
 ENV DISPLAY=:99
