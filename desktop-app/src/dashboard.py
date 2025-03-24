@@ -12,6 +12,8 @@ from today import Today
 from admin import Setting
 
 
+# TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
+
 class Dashboard(tk.Tk):
     
     def __init__(self):

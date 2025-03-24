@@ -41,27 +41,36 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS children (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 first_name TEXT NOT NULL,
+                middle_name TEXT,
                 last_name TEXT NOT NULL,
                 birth_date TEXT,
+                guardian_one_fname TEXT NOT NULL,
+                guardian_one_lname TEXT NOT NULL,
+                guardian_one_contact_no TEXT NOT NULL,
+                guardian_one_email TEXT NOT NULL,
+                guardian_two_fname TEXT,
+                guardian_two_lname TEXT,
+                guardian_two_contact_no TEXT,
+                
                 UNIQUE(first_name, last_name, birth_date)
             )
             ''')
 
             # Insert fake children for development
             cursor.execute('''
-            INSERT OR IGNORE INTO Children (first_name, last_name, birth_date)
-                VALUES ('Harry', 'Potter', '2022-02-10'),
-                        ('Hermione', 'Granger', '2022-04-15'),
-                        ('Ron', 'Weasley', '2022-07-12'),
-                        ('Neville', 'Longbottom', '2022-01-11'),
-                        ('Ginny', 'Weasley', '2023-04-09'),
-                        ('Luna', 'Lovegood', '2022-09-19'),
-                        ('Fred', 'Weasley', '2022-01-02'),
-                        ('George', 'Weasley', '2022-01-02'),
-                        ('Draco', 'Malfoy', '2022-07-24'),
-                        ('Cedric', 'Diggory', '2022-11-29'),
-                        ('Cho', 'Chang', '2022-12-10')
-                        ''')
+            INSERT OR IGNORE INTO Children (first_name, middle_name, last_name, birth_date, guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, guardian_two_fname, guardian_two_lname, guardian_two_contact_no)
+                VALUES ('Harry', 'James', 'Potter', '2022-02-10', 'James', 'Potter', '555-1234', 'james.potter@email.com', NULL, NULL, NULL),
+                        ('Hermione', 'Jean', 'Granger', '2022-04-15', 'Daniel', 'Granger', '555-2345', 'daniel.granger@email.com', NULL, NULL, NULL),
+                        ('Ronald', 'Bilius', 'Weasley', '2022-07-12', 'Arthur', 'Weasley', '555-3456', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-4567'),
+                        ('Neville', NULL, 'Longbottom', '2022-01-11', 'Alice', 'Longbottom', '555-5678', 'alice.longbottom@email.com', 'Frank', 'Longbottom', '555-6789'),
+                        ('Ginny', 'Molly', 'Weasley', '2023-04-09', 'Arthur', 'Weasley', '555-7890', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-8901'),
+                        ('Luna', NULL, 'Lovegood', '2022-09-19', 'Xenophilius', 'Lovegood', '555-9012', 'xenophilius.lovegood@email.com', NULL, NULL, NULL),
+                        ('Fred', NULL, 'Weasley', '2022-01-02', 'Arthur', 'Weasley', '555-1122', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-2233'),
+                        ('George', NULL, 'Weasley', '2022-01-02', 'Arthur', 'Weasley', '555-3344', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-4455'),
+                        ('Draco', 'Lucius', 'Malfoy', '2022-07-24', 'Lucius', 'Malfoy', '555-5566', 'lucius.malfoy@email.com', 'Narcissa', 'Malfoy', '555-6677'),
+                        ('Cedric', NULL, 'Diggory', '2022-11-29', 'Amos', 'Diggory', '555-7788', 'amos.diggory@email.com', 'Mandy', 'Diggory', '555-8899'),
+                        ('Cho', NULL, 'Chang', '2022-12-10', 'Mr. Chang', 'Chang', '555-9900', 'mr.chang@email.com', NULL, NULL, NULL)
+                    ''')
 
             # Commit the changes and leave the connection open for further operations
             conn.commit()
