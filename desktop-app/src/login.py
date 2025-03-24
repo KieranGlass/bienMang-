@@ -53,7 +53,7 @@ class LoginWindow(tk.Tk):
             password = self.password_entry.get()
 
             # Connect to the database
-            conn = sqlite3.connect('/database/bien-manger.db')  # Update with the path to your database
+            conn = sqlite3.connect('/database/bien-manger.db')
             cursor = conn.cursor()
 
             # Query to check if user exists with the given username and password

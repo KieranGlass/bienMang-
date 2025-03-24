@@ -42,9 +42,26 @@ def create_tables():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 first_name TEXT NOT NULL,
                 last_name TEXT NOT NULL,
-                birth_date TEXT
+                birth_date TEXT,
+                UNIQUE(first_name, last_name, birth_date)
             )
             ''')
+
+            # Insert fake children for development
+            cursor.execute('''
+            INSERT OR IGNORE INTO Children (first_name, last_name, birth_date)
+                VALUES ('Harry', 'Potter', '2022-02-10'),
+                        ('Hermione', 'Granger', '2022-04-15'),
+                        ('Ron', 'Weasley', '2022-07-12'),
+                        ('Neville', 'Longbottom', '2022-01-11'),
+                        ('Ginny', 'Weasley', '2023-04-09'),
+                        ('Luna', 'Lovegood', '2022-09-19'),
+                        ('Fred', 'Weasley', '2022-01-02'),
+                        ('George', 'Weasley', '2022-01-02'),
+                        ('Draco', 'Malfoy', '2022-07-24'),
+                        ('Cedric', 'Diggory', '2022-11-29'),
+                        ('Cho', 'Chang', '2022-12-10')
+                        ''')
 
             # Commit the changes and leave the connection open for further operations
             conn.commit()
