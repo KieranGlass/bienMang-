@@ -14,6 +14,7 @@ from admin import Setting
 
 # TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
 
+ 
 class Dashboard(tk.Tk):
     
     def __init__(self):
@@ -21,10 +22,12 @@ class Dashboard(tk.Tk):
         print("Initializing MainWindow...")
         self.title("Bien Manger")
         self.geometry("1400x900")
+        self.configure(bg="#d9f1fb")
         self.deiconify()
         self.attributes('-topmost', True)
         self.attributes('-topmost', False)
         self.lift()
+
         self.create_dashboard()      
         
     def create_title_label(self):
@@ -35,7 +38,6 @@ class Dashboard(tk.Tk):
     def create_dashboard(self):
         print(f"Current working directory: {os.getcwd()}")
         print(f"Resources path: {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources')}")
-        
 
         self.create_title_label()
 

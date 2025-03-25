@@ -8,6 +8,7 @@ class LoginWindow(tk.Tk):
         super().__init__()
         self.title("Bien Manger - Login")
         self.geometry("400x300")
+        self.configure(bg="#d9f1fb")
         self.resizable(False, False)
     
         # Create main frame that fills the window
