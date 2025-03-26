@@ -57,7 +57,7 @@ def add_child(
         ))
         conn.commit()
 
-class Children(tk.Tk):
+class Children(tk.Toplevel):
     
     def __init__(self, dashboard):
         super().__init__()
@@ -89,16 +89,12 @@ class Children(tk.Tk):
         dashboard_frame.grid_columnconfigure(1, weight=2)  
         dashboard_frame.grid_columnconfigure(2, weight=2)
 
-
         self.create_global_sidebar()
-
-        self.edit_child_button = ttk.Button(self, text="Edit Child", command=self.edit_child)
-        self.edit_child_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         self.delete_child_button = ttk.Button(self, text="Delete Child", command=self.delete_child)
         self.delete_child_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
-        self.create_bottom_button_frame()
+        self.create_add_new_child_frame() # "/app/src/resources/images/settings.PNG"
 
         self.create_pupil_list()
 
@@ -110,7 +106,7 @@ class Children(tk.Tk):
         # Load and display all children from the database
         self.load_children()
 
-    def create_bottom_button_frame(self):
+    def create_add_new_child_frame(self):
         """Create the bordered frame for buttons and child input fields in the bottom row."""
         button_frame = ttk.Frame(self, relief="raised", borderwidth=2)
         button_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
@@ -322,38 +318,31 @@ class Children(tk.Tk):
         self.info_frame.grid_columnconfigure(1, weight=2, minsize=300)  # Right column will take up the other half
 
         # ---------------- Left Half ----------------
-        # Add the image box (top half of the left side)
-        self.image_frame = ttk.Frame(self.info_frame, relief="solid", borderwidth=1, height=100, width=100)
-        self.image_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-    
-        # Load the placeholder image
-        image_path = "/app/src/resources/images/placeholder.png"  # Full path
-        try:
-            self.image = Image.open(image_path)
-            self.image = self.image.resize((100, 100))  # Resize to fit the label
-            self.image_tk = ImageTk.PhotoImage(self.image)  # Convert to a Tkinter-compatible photo image
-
-            # Create the image label using tk.Label instead of ttk.Label
-            self.image_label = tk.Label(self.image_frame, image=self.image_tk, anchor="center")
-            self.image_label.grid(row=0, column=0, padx=10, pady=10)
-
-            # Keep a reference to the image so it doesn't get garbage collected
-            self.image_label.image = self.image_tk
-        except Exception as e:
-            print(f"Error loading image: {e}")
-            self.image_label = tk.Label(self.image_frame, text="Image failed to load")
-            self.image_label.grid(row=0, column=0, padx=10, pady=10)
 
         # Add the name and dob fields (bottom half of the left side)
         self.name_frame = ttk.Frame(self.info_frame)
-        self.name_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.name_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        # Load the image file (ensure the path is correct)
+        image_path = "/app/src/resources/images/potter.PNG"  # Replace with actual path
+        img = Image.open(image_path)
+        img = img.resize((210, 180))  # Resize image as needed
+        photo = ImageTk.PhotoImage(img)
+
+        # Create a Label to display the image
+        label = tk.Label(self.name_frame, image=photo)
+        label.image = photo  # Keep a reference to the image
+        label.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         # Create label-value pairs for Left Half (Name and DOB)
-        self.first_name_pair = self.create_label_value_pair(self.name_frame, "First Name", 0, 0)
-        self.middle_name_pair = self.create_label_value_pair(self.name_frame, "Middle Name", 1, 0)
-        self.last_name_pair = self.create_label_value_pair(self.name_frame, "Last Name", 2, 0)
-        self.dob_pair = self.create_label_value_pair(self.name_frame, "Date of Birth", 3, 0)
-        self.year_group_pair = self.create_label_value_pair(self.name_frame, "Year Group", 4, 0)
+        self.first_name_pair = self.create_label_value_pair(self.name_frame, "First Name", 1, 0)
+        self.middle_name_pair = self.create_label_value_pair(self.name_frame, "Middle Name", 2, 0)
+        self.last_name_pair = self.create_label_value_pair(self.name_frame, "Last Name", 3, 0)
+        self.dob_pair = self.create_label_value_pair(self.name_frame, "Date of Birth", 4, 0)
+        self.year_group_pair = self.create_label_value_pair(self.name_frame, "Year Group", 5, 0)
+
+        self.edit_child_button = ttk.Button(self.name_frame, text="Edit Child", command=self.edit_child)
+        self.edit_child_button.grid(row=7, column=0, padx=5, pady=5, sticky="nsew")
 
         # ---------------- Right Half ----------------
         # Placeholder for additional information labels (Right half will have 7 labels)
@@ -386,7 +375,7 @@ class Children(tk.Tk):
 
         # Value part (displayed below the label in a different style)
         value = ttk.Label(pair_frame, text="--", anchor="w", font=("Arial", 10), wraplength=400)
-        value.pack(fill="x", pady=(5, 0))  # Value below, with space above
+        value.pack(fill="x", pady=(5, 5))  # Value below, with space above
 
         # Return both the label and value so they can be updated later
         return label, value
