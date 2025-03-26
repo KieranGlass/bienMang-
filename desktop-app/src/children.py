@@ -1,9 +1,13 @@
 import sqlite3
+import re
 from contextlib import closing
 
 import tkinter as tk
 from tkinter import ttk
 from tkinter import simpledialog
+from tkinter import messagebox
+from tkcalendar import DateEntry
+
 from PIL import Image, ImageTk
 
 from styles import apply_styles
@@ -28,14 +32,29 @@ def get_child(ID):
         child_data = cursor.fetchone() 
     return child_data
 
-def add_child(first_name, last_name, birth_date): #TODO - bUILD UP THIS METHOD!!
-    """Add a child to the database."""
+def add_child(
+    first_name, middle_name, last_name, birth_date, year_group,
+    guardian_one_fname, guardian_one_lname, guardian_one_contact_no, 
+    guardian_one_email, guardian_two_fname=None, guardian_two_lname=None,
+    guardian_two_contact_no=None):
+
+    """Add a child to the database with all required fields."""
     conn = get_db_connection()
     with closing(conn.cursor()) as cursor:
         cursor.execute('''
-        INSERT INTO children (first_name, last_name, birth_date)
-        VALUES (?, ?, ?)
-        ''', (first_name, last_name, birth_date))
+            INSERT INTO children (
+                first_name, middle_name, last_name, birth_date, year_group,
+                guardian_one_fname, guardian_one_lname, guardian_one_contact_no,
+                guardian_one_email, guardian_two_fname, guardian_two_lname,
+                guardian_two_contact_no
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            first_name, middle_name, last_name, birth_date, year_group,
+            guardian_one_fname, guardian_one_lname, guardian_one_contact_no,
+            guardian_one_email, guardian_two_fname, guardian_two_lname,
+            guardian_two_contact_no
+        ))
         conn.commit()
 
 class Children(tk.Tk):
@@ -73,6 +92,12 @@ class Children(tk.Tk):
 
         self.create_global_sidebar()
 
+        self.edit_child_button = ttk.Button(self, text="Edit Child", command=self.edit_child)
+        self.edit_child_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+        self.delete_child_button = ttk.Button(self, text="Delete Child", command=self.delete_child)
+        self.delete_child_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
         self.create_bottom_button_frame()
 
         self.create_pupil_list()
@@ -86,25 +111,136 @@ class Children(tk.Tk):
         self.load_children()
 
     def create_bottom_button_frame(self):
-        # Create the bordered frame for buttons in the bottom row of the middle column
+        """Create the bordered frame for buttons and child input fields in the bottom row."""
         button_frame = ttk.Frame(self, relief="raised", borderwidth=2)
         button_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
-        # Configure the button frame grid
-        button_frame.grid_rowconfigure(0, weight=1)
-        button_frame.grid_columnconfigure(0, weight=1)
-        button_frame.grid_columnconfigure(1, weight=1)
-        button_frame.grid_columnconfigure(2, weight=1)
+        # Add the Add Child button
+        self.add_child_button = ttk.Button(button_frame, text="Add Child", 
+                                       command=self.add_child_validation)
+        self.add_child_button.grid(row=0, column=0, columnspan=12, pady=10, sticky="w")
 
-        # Create the buttons inside the button frame
-        self.add_child_button = ttk.Button(button_frame, text="Add Child", command=self.add_child)
-        self.add_child_button.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+    
+        # Configure grid to create a form layout
+        for i in range(2):  # 2 columns for labels and entries
+            button_frame.grid_columnconfigure(i, weight=1)
 
-        self.edit_child_button = ttk.Button(button_frame, text="Edit Child", command=self.edit_child)
-        self.edit_child_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        # Create a frame for labels and entries
+        labels_frame = ttk.Frame(button_frame)
+        labels_frame.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
 
-        self.delete_child_button = ttk.Button(button_frame, text="Delete Child", command=self.delete_child)
-        self.delete_child_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        # Create a list of labels
+        labels = [
+            "First Name", "Middle Name", "Last Name", "Date of Birth", "Year Group", 
+            "Guardian 1 First Name", "Guardian 1 Last Name", "Guardian 1 Contact No", 
+            "Guardian 1 Email", "Guardian 2 First Name", "Guardian 2 Last Name", 
+            "Guardian 2 Contact No"
+        ]
+    
+        entries = []
+
+         # Iterate to create label and entry pairs in two columns
+        for i, label in enumerate(labels):
+            row = i // 2  # Rows for label-entry pairs
+            col = i % 2   # Columns 0 or 1
+        
+            label_widget = ttk.Label(labels_frame, text=label, anchor="w", font=("Arial", 12))
+            label_widget.grid(row=row, column=col * 2, padx=5, pady=5, sticky="w")
+        
+            if label == "Date of Birth":
+                # Use DateEntry widget for Date of Birth
+                entry_widget = DateEntry(labels_frame, font=("Arial", 12), date_pattern="yyyy-mm-dd")
+                entry_widget.grid(row=row, column=col * 2 + 1, padx=5, pady=5, sticky="ew")
+            elif label == "Year Group":
+                #Year Group dropdown (combobox)
+                year_group_options = ['Petits', 'Moyens', 'Grands']
+                year_group_combobox = ttk.Combobox(labels_frame, values=year_group_options, state="readonly", font=("Arial", 12))
+                year_group_combobox.set("Petits")  # Default to "Petits"
+                year_group_combobox.grid(row=row, column=col * 2 + 1, padx=5, pady=5, sticky="ew")
+                entries.append(year_group_combobox)
+            else:
+                # For other fields, use Entry widget
+                entry_widget = ttk.Entry(labels_frame, font=("Arial", 12))
+                entry_widget.grid(row=row, column=col * 2 + 1, padx=5, pady=5, sticky="ew")
+
+            entries.append(entry_widget)
+
+        # Assign entry fields to the respective attributes
+        self.first_name_entry = entries[0]
+        self.middle_name_entry = entries[1]
+        self.last_name_entry = entries[2]
+        self.date_of_birth_entry = entries[3]
+        self.year_group_entry = entries[4]
+        self.guardian_one_fname_entry = entries[5]
+        self.guardian_one_lname_entry = entries[6]
+        self.guardian_one_contact_no_entry = entries[7]
+        self.guardian_one_email_entry = entries[8]
+        self.guardian_two_fname_entry = entries[9]
+        self.guardian_two_lname_entry = entries[10]
+        self.guardian_two_contact_no_entry = entries[11]
+
+    def clear_form(self):
+        """Clear all form fields."""
+        for attr in dir(self):
+            if attr.endswith('_entry'):
+                getattr(self, attr).delete(0, tk.END)
+
+    def add_child_validation(self):
+        """Add a new child using the form fields."""
+        # Get all values from the form fields
+        first_name = self.first_name_entry.get()
+        middle_name = self.middle_name_entry.get()
+        last_name = self.last_name_entry.get()
+        birth_date = self.date_of_birth_entry.get()
+        year_group = self.year_group_entry.get()
+        guardian_one_fname = self.guardian_one_fname_entry.get()
+        guardian_one_lname = self.guardian_one_lname_entry.get()
+        guardian_one_contact_no = self.guardian_one_contact_no_entry.get()
+        guardian_one_email = self.guardian_one_email_entry.get()
+        guardian_two_fname = self.guardian_two_fname_entry.get()
+        guardian_two_lname = self.guardian_two_lname_entry.get()
+        guardian_two_contact_no = self.guardian_two_contact_no_entry.get()
+    
+        # Validate required fields
+        required_fields = {
+            'First Name': first_name,
+            'Last Name': last_name,
+            'Date of Birth': birth_date,
+            'Year Group': year_group,
+            'Guardian 1 First Name': guardian_one_fname,
+            'Guardian 1 Last Name': guardian_one_lname,
+            'Guardian 1 Contact No': guardian_one_contact_no,
+            'Guardian 1 Email': guardian_one_email
+        }
+    
+        # Check for missing required fields
+        missing_fields = [field for field, value in required_fields.items() 
+                     if not value.strip()]
+    
+        if missing_fields:
+            messagebox.showerror("Error", 
+                f"The following required fields are missing:\n{', '.join(missing_fields)}")
+            return
+    
+        # Validate email format
+        if not self.validate_email(guardian_one_email):
+            messagebox.showerror("Error", "Invalid Guardian 1 email format")
+            return
+    
+        # Add child to database
+        try:
+            add_child(
+                first_name, middle_name, last_name, birth_date, year_group,
+                guardian_one_fname, guardian_one_lname, guardian_one_contact_no,
+                guardian_one_email, guardian_two_fname, guardian_two_lname,
+                guardian_two_contact_no
+            )
+            # Reload the list of children
+            self.load_children()
+            # Clear the form
+            self.clear_form()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to add child: {str(e)}")
 
         """ Create the sidebar with tabs """
         # Sidebar container (frame)
@@ -157,10 +293,10 @@ class Children(tk.Tk):
         self.tree.grid(row=1, column=2, columnspan=1, padx=0, pady=0, sticky="nsew")
     
         # Define the headings
-        self.tree.heading("Id", text="Id")
-        self.tree.heading("First Name", text="First Name")
-        self.tree.heading("Last Name", text="Last Name")
-        self.tree.heading("Year Group", text="Year Group")
+        self.tree.heading("Id", text="Id", command=lambda: self.sort_children(0))
+        self.tree.heading("First Name", text="First Name", command=lambda: self.sort_children(1))
+        self.tree.heading("Last Name", text="Last Name", command=lambda: self.sort_children(2))
+        self.tree.heading("Year Group", text="Year Group", command=lambda: self.sort_children(3))
 
         # Set width for each column
         self.tree.column("Id", width=20, anchor="center")
@@ -276,6 +412,13 @@ class Children(tk.Tk):
         for child in children:
             self.tree.insert("", tk.END, values=(child[0], child[1], child[3], child[5]))
 
+         # Automatically select the first child after loading
+        if children:
+            first_child_id = children[0][0]  # Get the ID of the first child
+            first_item = self.tree.get_children()[0]  # Get the first item in the Treeview
+            self.tree.selection_set(first_item)  # Select the first item
+            self.on_treeview_select(None)  # Trigger the info box update for the first student
+
     def on_treeview_select(self, event):
         """Updates the student info display when a student is selected in the Treeview."""
     
@@ -362,6 +505,51 @@ class Children(tk.Tk):
 
             # Reload the list of children after adding
             self.load_children()
+
+    def sort_children(self, column, reverse=False):
+        """Sort the Treeview by the selected column."""
+        # Get all items from the Treeview
+        items = [(self.tree.item(item)['values'], item) for item in self.tree.get_children()]
+
+        # Define sorting function with safety checks
+        def sort_key(values):
+            # Ensure we have enough values before accessing
+            if len(values) <= column:
+                return '' if column != 0 else float('inf')
+        
+            col_value = values[column]
+        
+            # If it's the first column (ID), sort numerically
+            if column == 0:
+                try:
+                    return int(col_value)  # Ensure ID is sorted numerically
+                except ValueError:
+                    return float('inf')  # In case the ID is not a number
+            else:
+                # Sort alphabetically for all other columns
+                return str(col_value).lower()  # Case-insensitive sorting
+    
+        # Sort the items based on the selected column and reverse order
+        items.sort(key=lambda item: sort_key(item[0]), reverse=reverse)
+    
+        # Rearrange the items in sorted order
+        for idx, (values, item) in enumerate(items):
+            self.tree.move(item, '', idx)
+
+        # Toggle the sort order for the next click
+        self.tree.heading(column,
+                     command=lambda c=column: self.sort_children(c, not reverse))
+
+    def validate_email(self, email):    
+        # Validate the email format using a regular expression
+        
+        email_pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+
+        
+        if re.match(email_pattern, email):
+            return True
+        else:
+            return False
 
 if __name__ == "__main__":
     app = Children()
