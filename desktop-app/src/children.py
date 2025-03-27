@@ -65,6 +65,7 @@ class Children(tk.Toplevel):
         print("Initializing Pupil list...")
         self.title("Current Pupils")
         self.geometry("1400x900")
+        self.configure(bg="#d9f1fb")
         self.deiconify()
         self.lift()
         self.create_children_window()      
@@ -94,7 +95,7 @@ class Children(tk.Toplevel):
         self.delete_child_button = ttk.Button(self, text="Delete Child", command=self.delete_child)
         self.delete_child_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
-        self.create_add_new_child_frame() # "/app/src/resources/images/settings.PNG"
+        self.create_add_new_child_frame()
 
         self.create_pupil_list()
 
@@ -111,12 +112,41 @@ class Children(tk.Toplevel):
         button_frame = ttk.Frame(self, relief="raised", borderwidth=2)
         button_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
+
+        style = ttk.Style()
+        style.configure(
+            "Custom.addButton",
+            background="#4caf50",  # Darkish blue
+            foreground="white",     # White text
+            font=("Arial", 12, "bold"),
+            relief="raised",        # Raised effect (simulates depth)
+            padding=(10, 5),        # Padding for more space inside
+            borderwidth=2,          # Border width for depth
+            anchor="center",  
+        )
+        style.map("Custom.addButton", background=[("active", "#66bb6a")])  # Lighter blue on hover
+        
+        
         # Add the Add Child button
         self.add_child_button = ttk.Button(button_frame, text="Add Child", 
                                        command=self.add_child_validation)
         self.add_child_button.grid(row=0, column=0, columnspan=12, pady=10, sticky="w")
 
-    
+
+        style = ttk.Style()
+        style.configure(
+            "Custom.addButton",
+            background="#4caf50",  # Darkish blue
+            foreground="white",     # White text
+            font=("Arial", 12, "bold"),
+            relief="raised",        # Raised effect (simulates depth)
+            padding=(10, 5),        # Padding for more space inside
+            borderwidth=2,          # Border width for depth
+            anchor="center",  
+        )
+        style.map("Custom.addButton", background=[("active", "#66bb6a")])  # Lighter blue on hover
+        
+    #4CAF50
         # Configure grid to create a form layout
         for i in range(2):  # 2 columns for labels and entries
             button_frame.grid_columnconfigure(i, weight=1)
@@ -259,7 +289,7 @@ class Children(tk.Toplevel):
         """ Create the sidebar with tabs """
         # Sidebar container (frame)
         sidebar_frame = ttk.Frame(self, relief="raised")
-        sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nswe")
+        sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsw")
 
         # Tab buttons
         self.create_sidebar_tab(sidebar_frame, "Home", self.go_home, 0)
@@ -272,8 +302,22 @@ class Children(tk.Toplevel):
 
     def create_sidebar_tab(self, sidebar_frame, label, command, row):
         """ Helper function to create a tab (button) in the sidebar """
-        tab_button = ttk.Button(sidebar_frame, text=label, command=command, style="Sidebar.TButton")
+        tab_button = ttk.Button(sidebar_frame, text=label, command=command)
         tab_button.grid(row=row, column=0, padx=10, pady=10, sticky="w")
+
+        style = ttk.Style()
+        style.configure(
+            "Custom.TButton",
+            background="#1e3a5f",  # Darkish blue
+            foreground="white",     # White text
+            font=("Arial", 12, "bold"),
+            relief="raised",        # Raised effect (simulates depth)
+            padding=(10, 5),        # Padding for more space inside
+            borderwidth=2,          # Border width for depth
+            anchor="center",  
+        )
+        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
+        tab_button.configure(style="Custom.TButton")
 
     def create_pupil_list(self):
         # Create a style for Treeview
@@ -311,6 +355,7 @@ class Children(tk.Toplevel):
         self.info_frame = ttk.Frame(self, relief="solid", borderwidth=2)
         self.info_frame.grid(row=0, column=2, padx=0, pady=0, sticky="nsew")
 
+
         # Configure grid to divide the info_frame into two columns and two rows
         self.info_frame.grid_rowconfigure(0, weight=1, minsize=50)  # First row will take up half of the vertical space
         self.info_frame.grid_rowconfigure(1, weight=1, minsize=50)  # Second row will take up the bottom half
@@ -326,7 +371,7 @@ class Children(tk.Toplevel):
         # Load the image file (ensure the path is correct)
         image_path = "/app/src/resources/images/potter.PNG"  # Replace with actual path
         img = Image.open(image_path)
-        img = img.resize((210, 180))  # Resize image as needed
+        img = img.resize((160, 140))  # Resize image as needed
         photo = ImageTk.PhotoImage(img)
 
         # Create a Label to display the image
@@ -342,7 +387,7 @@ class Children(tk.Toplevel):
         self.year_group_pair = self.create_label_value_pair(self.name_frame, "Year Group", 5, 0)
 
         self.edit_child_button = ttk.Button(self.name_frame, text="Edit Child", command=self.edit_child)
-        self.edit_child_button.grid(row=7, column=0, padx=5, pady=5, sticky="nsew")
+        self.edit_child_button.grid(row=7, column=0, padx=5, pady=5, sticky="sew")
 
         # ---------------- Right Half ----------------
         # Placeholder for additional information labels (Right half will have 7 labels)
@@ -363,7 +408,7 @@ class Children(tk.Toplevel):
     
         # Create a frame for the label-value pair to act like a box
         pair_frame = ttk.Frame(parent_frame, relief="solid", borderwidth=1, padding=5)
-        pair_frame.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
+        pair_frame.grid(row=row, column=col, padx=10, pady=0, sticky="nsew")
 
         # Configure this pair_frame to have equal width and height (boxes will be uniform size)
         parent_frame.grid_columnconfigure(col, weight=1, uniform="group1")
@@ -371,7 +416,7 @@ class Children(tk.Toplevel):
 
         # Label part (displayed at the top of the box)
         label = ttk.Label(pair_frame, text=label_text, anchor="w", font=("Helvetica", 10, "bold"))
-        label.pack(fill="x", pady=(0, 5))  # Label on top, with space below
+        label.pack(fill="x", pady=(0, 0))  # Label on top, with space below
 
         # Value part (displayed below the label in a different style)
         value = ttk.Label(pair_frame, text="--", anchor="w", font=("Arial", 10), wraplength=400)
