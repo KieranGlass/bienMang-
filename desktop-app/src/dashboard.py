@@ -12,6 +12,7 @@ from reports import Reports
 from registers import Registers
 from today import Today
 from admin import Setting
+from day_info import DayInfoPage
 
 
 # TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
@@ -155,7 +156,6 @@ class Dashboard(tk.Tk):
                 self.calendar.calevent_create(day_date, f"{day.day}", "weekend")  # Create event for weekend
                 self.calendar.tag_config("weekend", background="pink", foreground="black")  # Tag for weekend with lightyellow background
 
-
     def _get_days_in_month(self, date):
         """ Get all the days in the month for the given date """
         # Get the last day of the current month
@@ -190,6 +190,11 @@ class Dashboard(tk.Tk):
         print("Opening day info page for " + selected_date)
         # Open a new window (DayInfoPage) showing details for the selected date
         # Pass the selected date to DayInfoPage
+
+        day_info_window = DayInfoPage(self, selected_date)
+        day_info_window.mainloop()
+
+
 
     def show_today(self):
         print("Showing today")

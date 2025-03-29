@@ -6,7 +6,7 @@ class DayInfoPage(tk.Toplevel):
         super().__init__(parent)
         self.selected_date = selected_date  # The date clicked on the calendar
         self.title(f"Details for {self.selected_date}")
-        self.geometry("600x400")
+        self.geometry("1400x900")
         
         # Create a label for the day’s date
         self.date_label = tk.Label(self, text=f"Information for {self.selected_date}", font=("Helvetica", 16))
@@ -25,8 +25,16 @@ class DayInfoPage(tk.Toplevel):
         self.register_info = tk.Label(self, text="", font=("Helvetica", 12))  # To be populated with DB data
         self.register_info.pack(pady=5)
 
+        # Back button to go back to the calendar dashboard
+        self.back_button = tk.Button(self, text="Close", command=self.go_back)
+        self.back_button.pack(pady=10)
+
         # Populate data for the selected date
-        self.load_day_info(self.selected_date)
+        #self.load_day_info(self.selected_date)
+
+    def go_back(self):
+        """ Closes this window and brings the user back to the calendar dashboard """
+        self.destroy()  # Close the DayInfoPage
 
     def load_day_info(self, date):
         """ Fetch and populate data for the selected date from the database """
