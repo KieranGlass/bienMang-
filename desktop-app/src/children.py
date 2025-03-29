@@ -146,7 +146,7 @@ class Children(tk.Toplevel):
         )
         style.map("Custom.addButton", background=[("active", "#66bb6a")])  # Lighter blue on hover
         
-    #4CAF50
+    
         # Configure grid to create a form layout
         for i in range(2):  # 2 columns for labels and entries
             button_frame.grid_columnconfigure(i, weight=1)
@@ -267,23 +267,6 @@ class Children(tk.Toplevel):
             self.clear_form()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to add child: {str(e)}")
-
-        """ Create the sidebar with tabs """
-        # Sidebar container (frame)
-        sidebar_frame = ttk.Frame(self)
-        sidebar_frame.grid(row=0, column=0, rowspan=1, padx=0, pady=0, sticky="nswe") 
-
-        # Set the background color for the sidebar
-        sidebar_frame.configure(style="Sidebar.TFrame")
-
-        # Tab buttons
-        self.create_sidebar_tab(sidebar_frame, "Home", self.go_home, 0)
-        self.create_sidebar_tab(sidebar_frame, "Tab 1", self.go_home, 1)
-        self.create_sidebar_tab(sidebar_frame, "Tab 2", self.go_home, 2)
-        self.create_sidebar_tab(sidebar_frame, "Tab 3", self.go_home, 3)
-        self.create_sidebar_tab(sidebar_frame, "Tab 4", self.go_home, 4)
-        self.create_sidebar_tab(sidebar_frame, "Tab 5", self.go_home, 5)
-        self.create_sidebar_tab(sidebar_frame, "Tab 6", self.go_home, 6)
 
     def create_global_sidebar(self):
         """ Create the sidebar with tabs """
@@ -497,20 +480,6 @@ class Children(tk.Toplevel):
                 self.guardian_two_fname_pair[1].config(text=g2_fname)
                 self.guardian_two_lname_pair[1].config(text=g2_lname)
                 self.guardian_two_contactNo_pair[1].config(text=g2_no)
-
-    def add_child(self):
-        """Prompts the user to enter child details and adds them to the database."""
-        # Get the child's details from the user
-        first_name = simpledialog.askstring("Input", "Enter the child's first name:")
-        last_name = simpledialog.askstring("Input", "Enter the child's last name:")
-        birth_date = simpledialog.askstring("Input", "Enter the child's birth date (YYYY-MM-DD):")
-
-        if first_name and last_name and birth_date:
-            # Insert the new child into the database
-            add_child(first_name, last_name, birth_date)
-
-            # Reload the list of children after adding
-            self.load_children()
 
     def edit_child(self):
         """Prompts the user to enter child details and adds them to the database."""
