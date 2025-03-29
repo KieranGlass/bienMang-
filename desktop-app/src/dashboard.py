@@ -1,12 +1,11 @@
 import os
 import tkinter as tk
-from login import LoginWindow
-from PIL import Image, ImageTk
 from tkinter import ttk
 from tkcalendar import Calendar
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from login import LoginWindow
 from children import Children
 from menus import Menus
 from reports import Reports
@@ -100,23 +99,97 @@ class Dashboard(tk.Tk):
         parent.grid_columnconfigure(0, weight=1)
 
         # Display the current date on the calendar
-        self.calendar.set_date(datetime.today())
+        # self.calendar.set_date(datetime.today())
+
+        # Bind the calendar's day selection to a function
+        self.calendar.bind("<<CalendarSelected>>", self.on_day_selected)
+        # Bind the month change event to highlight the weekdays again
+        self.calendar.bind("<<CalendarMonthChanged>>", self.highlight_weekdays)
+
+        self.highlight_weekdays()
+
+    def highlight_weekdays(self, event=None):
+        """ Highlight weekdays (Mon-Fri) for the currently viewed month """
+        print("Month changed!")
+        # Get the first day of the currently displayed month
+        current_month = self.calendar.get_displayed_month()  # This returns a tuple like (year, month)
+        print(f"The month is: {current_month}")
+    
+        # Check if current_month is a tuple and format it into 'YYYY-MM' string
+        if isinstance(current_month, tuple) and len(current_month) == 2:
+            month, year = current_month  # Unpack the tuple
+            # Ensure the month is 2 digits, e.g., '03' for March
+            current_month_str = f"{year:04d}-{month:02d}"  # Format as 'YYYY-MM'
+        else:
+            # Handle error if the current_month is not a tuple or has invalid data
+            raise ValueError("Expected current_month to be a tuple with (year, month)")
+    
+        # Get the first day of the current month (ensure the date string is 'YYYY-MM-01')
+        first_day = datetime.strptime(current_month_str + "-01", "%Y-%m-%d")  # Creating a datetime object for the first day
+        print(f"First day is: {first_day.strftime('%Y-%m-%d')}")
+        
+
+        # Get all the days in the current month
+        total_days_in_month = self._get_days_in_month(first_day)
+
+        # Clear any existing events before applying new ones
+        self.calendar.calevent_remove("weekday")
+        self.calendar.calevent_remove("weekend")
+ 
+        # Try and delete existing tags so calendar doesnt keep previous months coloring
+        try:
+            self.calendar.tag_delete("weekday")
+            self.calendar.tag_delete("weekend")
+            print("Deleted exisiting tags")
+        except:
+            print("No tags currently present")
+
+        for day in total_days_in_month:
+
+            day_date = day.date()
+
+            if day.weekday() < 5:  # Monday to Friday are 0-4
+                self.calendar.calevent_create(day_date, f"{day.day}", "weekday")  # Create event for weekday
+                self.calendar.tag_config("weekday", background="lightgreen", foreground="black")  # Tag for weekday with lightgreen background
+            else:  # Weekend days (Saturday and Sunday)
+                self.calendar.calevent_create(day_date, f"{day.day}", "weekend")  # Create event for weekend
+                self.calendar.tag_config("weekend", background="pink", foreground="black")  # Tag for weekend with lightyellow background
+
+
+    def _get_days_in_month(self, date):
+        """ Get all the days in the month for the given date """
+        # Get the last day of the current month
+        next_month = date.replace(day=28) + timedelta(days=4)  # Go to the next month
+        last_day_of_month = next_month - timedelta(days=next_month.day)  # Get the last day of the month
+
+        # Generate all days in the month
+        days_in_month = [date.replace(day=d) for d in range(1, last_day_of_month.day + 1)]
+        return days_in_month
 
     def create_clock(self, parent):
         """ Create and display a label that shows real-time clock """
         self.time_label = tk.Label(parent, font=("Helvetica", 20), bg="#d9f1fb")
-        self.time_label.pack(pady=10)
+        self.time_label.grid(pady=10)
 
         # Update the clock every second
         self.update_clock()
 
     def update_clock(self):
         """ Update the clock to show the current time """
-        current_time = time.strftime("%H:%M:%S")  # Get current time
+        current_time = time.strftime("%H:%M")  # Get current time
         self.time_label.config(text=current_time)  # Update label with current time
 
         # Call this function every 1000 milliseconds (1 second)
         self.after(1000, self.update_clock)
+
+    def on_day_selected(self, event):
+        """ Handle when a day is selected on the calendar """
+        selected_date = self.calendar.get_date()  # Get the selected date in 'yyyy-mm-dd' format
+        
+
+        print("Opening day info page for " + selected_date)
+        # Open a new window (DayInfoPage) showing details for the selected date
+        # Pass the selected date to DayInfoPage
 
     def show_today(self):
         print("Showing today")
@@ -126,7 +199,6 @@ class Dashboard(tk.Tk):
         today_window = Today(self)  
         today_window.mainloop()  
             
-
     def show_children(self):
         print("Showing children")
 
@@ -135,7 +207,6 @@ class Dashboard(tk.Tk):
         children_window = Children(self)  # Initialize the Children window class
         children_window.mainloop()  # Start the Tkinter event loop for the new window
            
-
     def show_registers(self):
         print("Showing registers")
 
@@ -144,7 +215,6 @@ class Dashboard(tk.Tk):
         registers_window = Registers(self)  
         registers_window.mainloop() 
             
-
     def show_menus(self):
         print("Showing menus")
 
@@ -153,7 +223,6 @@ class Dashboard(tk.Tk):
         menus_window = Menus(self)  
         menus_window.mainloop() 
             
-
     def show_reports(self):
         print("Showing reports")
 
@@ -162,7 +231,6 @@ class Dashboard(tk.Tk):
         reports_window = Reports(self)  
         reports_window.mainloop() 
             
-
     def show_settings(self):
         print("Showing settings")
 
