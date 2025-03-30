@@ -52,6 +52,16 @@ def create_tables():
                 guardian_two_fname TEXT,
                 guardian_two_lname TEXT,
                 guardian_two_contact_no TEXT,
+                monday_arrival TEXT,
+                monday_finish TEXT,
+                tuesday_arrival TEXT,
+                tuesday_finish TEXT,
+                wednesday_arrival TEXT,
+                wednesday_finish TEXT,
+                thursday_arrival TEXT,
+                thursday_finish TEXT,
+                friday_arrival TEXT,
+                friday_finish TEXT,
                 
                 UNIQUE(first_name, last_name, birth_date)
             )
@@ -59,18 +69,45 @@ def create_tables():
 
             # Insert fake children for development
             cursor.execute('''
-            INSERT OR IGNORE INTO Children (first_name, middle_name, last_name, birth_date, year_group, guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, guardian_two_fname, guardian_two_lname, guardian_two_contact_no)
-                VALUES ('Harry', 'James', 'Potter', '2022-02-10', 'Petits', 'James', 'Potter', '555-1234', 'james.potter@email.com', NULL, NULL, NULL),
-                        ('Hermione', 'Jean', 'Granger', '2022-04-15', 'Petits', 'Daniel', 'Granger', '555-2345', 'daniel.granger@email.com', NULL, NULL, NULL),
-                        ('Ronald', 'Bilius', 'Weasley', '2022-07-12', 'Petits', 'Arthur', 'Weasley', '555-3456', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-4567'),
-                        ('Neville', NULL, 'Longbottom', '2022-01-11', 'Petits', 'Alice', 'Longbottom', '555-5678', 'alice.longbottom@email.com', 'Frank', 'Longbottom', '555-6789'),
-                        ('Ginny', 'Molly', 'Weasley', '2023-04-09', 'Bebes', 'Arthur', 'Weasley', '555-7890', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-8901'),
-                        ('Luna', NULL, 'Lovegood', '2022-09-19', 'Petits', 'Xenophilius', 'Lovegood', '555-9012', 'xenophilius.lovegood@email.com', NULL, NULL, NULL),
-                        ('Fred', NULL, 'Weasley', '2022-01-02', 'Grands', 'Arthur', 'Weasley', '555-1122', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-2233'),
-                        ('George', NULL, 'Weasley', '2022-01-02', 'Grands', 'Arthur', 'Weasley', '555-3344', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-4455'),
-                        ('Draco', 'Lucius', 'Malfoy', '2022-07-24', 'Petits', 'Lucius', 'Malfoy', '555-5566', 'lucius.malfoy@email.com', 'Narcissa', 'Malfoy', '555-6677'),
-                        ('Cedric', NULL, 'Diggory', '2022-11-29', 'Grands', 'Amos', 'Diggory', '555-7788', 'amos.diggory@email.com', 'Mandy', 'Diggory', '555-8899'),
-                        ('Cho', NULL, 'Chang', '2022-12-10', 'Grands', 'Julien', 'Chang', '555-9900', 'mr.chang@email.com', NULL, NULL, NULL)
+            INSERT OR IGNORE INTO Children (first_name, middle_name, last_name, birth_date, year_group, 
+    guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, 
+    guardian_two_fname, guardian_two_lname, guardian_two_contact_no,
+    monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, 
+    wednesday_arrival, wednesday_finish, thursday_arrival, thursday_finish, 
+    friday_arrival, friday_finish)
+                VALUES 
+    ('Harry', 'James', 'Potter', '2022-02-10', 'Petits', 'James', 'Potter', '555-1234', 'james.potter@email.com', NULL, NULL, NULL, 
+    '07:30', '16:00', '08:00', '16:30', '07:30', '16:00', '08:00', '16:00', '07:30', '16:00'),
+                           
+    ('Hermione', 'Jean', 'Granger', '2022-04-15', 'Petits', 'Daniel', 'Granger', '555-2345', 'daniel.granger@email.com', NULL, NULL, NULL, 
+    '08:00', '15:00', '08:30', '16:00', '08:00', '16:00', '08:30', '15:30', '07:30', '16:00'),
+    
+    ('Ronald', 'Bilius', 'Weasley', '2022-07-12', 'Petits', 'Arthur', 'Weasley', '555-3456', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-4567', 
+    '07:30', '16:00', '08:00', '15:00', '07:30', '16:00', '08:00', '16:30', '07:30', '15:30'),
+    
+    ('Neville', NULL, 'Longbottom', '2022-01-11', 'Petits', 'Alice', 'Longbottom', '555-5678', 'alice.longbottom@email.com', 'Frank', 'Longbottom', '555-6789',
+    'N/A', 'N/A', 'N/A', 'N/A', '08:00', '16:00', 'N/A', 'N/A', '08:00', '15:00'),
+    
+    ('Ginny', 'Molly', 'Weasley', '2023-04-09', 'Bebes', 'Arthur', 'Weasley', '555-7890', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-8901', 
+    'N/A', 'N/A', 'N/A', 'N/A', '07:30', '16:00', 'N/A', 'N/A', 'N/A', 'N/A'),
+    
+    ('Luna', NULL, 'Lovegood', '2022-09-19', 'Petits', 'Xenophilius', 'Lovegood', '555-9012', 'xenophilius.lovegood@email.com', NULL, NULL, NULL, 
+    '07:30', '15:30', '07:30', '15:00', 'N/A', 'N/A', '07:30', '16:00', '08:00', '16:30'),
+    
+    ('Fred', NULL, 'Weasley', '2022-01-02', 'Grands', 'Arthur', 'Weasley', '555-1122', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-2233',
+    '07:30', '16:00', 'N/A', 'N/A', '08:00', '15:00', '07:30', '16:00', '08:00', '15:00'),
+    
+    ('George', NULL, 'Weasley', '2022-01-02', 'Grands', 'Arthur', 'Weasley', '555-3344', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-4455',
+    '07:30', '15:30', '08:00', '15:30', '08:00', '16:00', '08:00', '16:00', '08:30', '15:30'),
+    
+    ('Draco', 'Lucius', 'Malfoy', '2022-07-24', 'Petits', 'Lucius', 'Malfoy', '555-5566', 'lucius.malfoy@email.com', 'Narcissa', 'Malfoy', '555-6677',
+    '08:00', '16:00', 'N/A', 'N/A', '07:30', '16:00', '08:00', '16:00', '07:30', '15:30'),
+    
+    ('Cedric', NULL, 'Diggory', '2022-11-29', 'Grands', 'Amos', 'Diggory', '555-7788', 'amos.diggory@email.com', 'Mandy', 'Diggory', '555-8899',
+    '07:30', '16:00', '08:00', '16:00', 'N/A', 'N/A', '08:00', '15:30', '08:00', '16:00'),
+    
+    ('Cho', NULL, 'Chang', '2022-12-10', 'Grands', 'Julien', 'Chang', '555-9900', 'mr.chang@email.com', NULL, NULL, NULL, 
+    'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', '08:00', '16:00')
                     ''')
 
             # Commit the changes and leave the connection open for further operations

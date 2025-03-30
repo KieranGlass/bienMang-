@@ -16,7 +16,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir \
-    PyQt5 PyQtWebEngine Pillow sqlalchemy bcrypt tkcalendar
+    PyQt5 PyQtWebEngine Pillow sqlalchemy bcrypt tkcalendar matplotlib
 
 # Set VNC password
 RUN mkdir -p /root/.vnc && \
