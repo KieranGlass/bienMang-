@@ -746,6 +746,7 @@ class Children(tk.Toplevel):
         self.clear_form()
 
         # Disable tabs and go back to control panel
+        self.notebook.tab(self.child_control_panel_frame, state='normal')
         self.notebook.select(self.child_control_panel_frame)
         self.notebook.tab(self.child_info_frame, state='disabled')
         self.notebook.tab(self.schedule_frame, state='disabled')
