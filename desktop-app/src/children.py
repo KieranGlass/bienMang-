@@ -177,7 +177,7 @@ class Children(tk.Toplevel):
         add_child_button = ttk.Button(panel_frame, text="Add New Child", command=self.add_new_child)
         add_child_button.grid(row=0, column=4, padx=5, pady=5, sticky="e" )
 
-        edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info")
+        edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info", command=self.edit_child)
         edit_child_info_button.grid(row=1, column=4, padx=5, pady=5, sticky="e" )
         
         edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule")
@@ -213,6 +213,7 @@ class Children(tk.Toplevel):
                 # Use DateEntry widget for Date of Birth
                 entry_widget = DateEntry(labels_frame, font=("Arial", 12), date_pattern="yyyy-mm-dd")
                 entry_widget.grid(row=row, column=col * 2 + 1, padx=5, pady=5, sticky="ew")
+                entries.append(entry_widget)
             elif label == "Year Group":
                 # Year Group dropdown (combobox)
                 year_group_options = ['Petits', 'Moyens', 'Grands']
@@ -225,7 +226,7 @@ class Children(tk.Toplevel):
                 entry_widget = ttk.Entry(labels_frame, font=("Arial", 12))
                 entry_widget.grid(row=row, column=col * 2 + 1, padx=5, pady=5, sticky="ew")
 
-            entries.append(entry_widget)
+                entries.append(entry_widget)
 
         # Add buttons for navigation
         cancel_button = ttk.Button(labels_frame, text="Cancel", command=self.cancel_process)
@@ -618,18 +619,7 @@ class Children(tk.Toplevel):
             self.create_schedule_chart(full_name, schedule_dict)
 
     def edit_child(self):
-        """Prompts the user to enter child details and adds them to the database."""
-        # Get the child's details from the user
-        first_name = simpledialog.askstring("Input", "Enter the child's first name:")
-        last_name = simpledialog.askstring("Input", "Enter the child's last name:")
-        birth_date = simpledialog.askstring("Input", "Enter the child's birth date (YYYY-MM-DD):")
-
-        if first_name and last_name and birth_date:
-            # Insert the new child into the database
-            add_child(first_name, last_name, birth_date)
-
-            # Reload the list of children after adding
-            self.load_children()
+        print("edit an entry")
 
     def delete_child(self):
         """Prompts the user to enter child details and adds them to the database."""
@@ -682,10 +672,10 @@ class Children(tk.Toplevel):
     def validate_email(self, email):    
         # Validate the email format using a regular expression
         
-        email_pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+        email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
         
-        if re.match(email_pattern, email):
+        if re.fullmatch(email_pattern, email):
             return True
         else:
             return False
@@ -766,31 +756,40 @@ class Children(tk.Toplevel):
         guardian_two_fname = self.guardian_two_fname_entry.get()
         guardian_two_lname = self.guardian_two_lname_entry.get()
         guardian_two_contact_no = self.guardian_two_contact_no_entry.get()
+
+        # Map the entry widgets to their respective field names
+        field_names = {
+            self.first_name_entry: "First Name",
+            self.last_name_entry: "Last Name",
+            self.guardian_one_fname_entry: "Guardian 1 First Name",
+            self.guardian_one_lname_entry: "Guardian 1 Last Name",
+            self.guardian_one_contact_no_entry: "Guardian 1 Contact No",
+            self.guardian_one_email_entry: "Guardian 1 Email"
+        }
     
         # Validate required fields
         required_fields = {
-            'First Name': first_name,
-            'Last Name': last_name,
-            'Date of Birth': birth_date,
-            'Year Group': year_group,
-            'Guardian 1 First Name': guardian_one_fname,
-            'Guardian 1 Last Name': guardian_one_lname,
-            'Guardian 1 Contact No': guardian_one_contact_no,
-            'Guardian 1 Email': guardian_one_email
-        }
+            self.first_name_entry: first_name,
+            self.last_name_entry: last_name,
+            self.guardian_one_fname_entry: guardian_one_fname,
+            self.guardian_one_lname_entry: guardian_one_lname,
+            self.guardian_one_contact_no_entry: guardian_one_contact_no,
+            self.guardian_one_email_entry: guardian_one_email
+    }
     
         # Check for missing required fields
-        missing_fields = [field for field, value in required_fields.items() 
-                     if not value.strip()]
+        missing_fields = [field for field, value in required_fields.items() if not value.strip()]
     
         if missing_fields:
-            messagebox.showerror("Error", 
-                f"The following required fields are missing:\n{', '.join(missing_fields)}")
+            # Get the names of the missing fields from the field_names mapping
+            missing_field_names = [field_names[field] for field in missing_fields]
+            messagebox.showerror("Error", f"The following required fields are missing:\n{', '.join(missing_field_names)}")
             return
-    
+        
         # Validate email format
-        if self.validate_email(guardian_one_email):
+        if not self.validate_email(guardian_one_email):
             messagebox.showerror("Error", "Invalid Guardian 1 email format")
+            self.guardian_one_email_entry.focus_set()  # Focus on the invalid email field
             return
 
         # If validation is successful, enable the next tab
@@ -799,6 +798,7 @@ class Children(tk.Toplevel):
 
     def back_to_child_info(self):
         """Go back to child info tab."""
+        self.notebook.tab(self.schedule_frame, state='disabled')
         self.notebook.select(self.child_info_frame)
 
     def finish_process(self):
@@ -819,7 +819,6 @@ class Children(tk.Toplevel):
 
         # Get all the data from the schedule info form
         monday_arrival = self.arrival_entries["Monday"].get()
-        print(f"..... {monday_arrival}")
         monday_finish = self.finish_entries["Monday"].get()
 
         tuesday_arrival = self.arrival_entries["Tuesday"].get()
@@ -833,9 +832,6 @@ class Children(tk.Toplevel):
 
         friday_arrival = self.arrival_entries["Friday"].get()
         friday_finish = self.finish_entries["Friday"].get()
-
-
-        # Schedule information should be collected similarly (assuming self.schedule_entries exists)
 
         # Add child to database
         try:
@@ -856,7 +852,10 @@ class Children(tk.Toplevel):
             
 
             # Go back to control panel
+            self.notebook.tab(self.child_control_panel_frame, state='normal')
             self.notebook.select(self.child_control_panel_frame)
+            self.notebook.tab(self.child_info_frame, state='disabled')
+            self.notebook.tab(self.schedule_frame, state='disabled')
             messagebox.showinfo("Success", "Child and schedule information saved successfully!")
 
         except Exception as e:
