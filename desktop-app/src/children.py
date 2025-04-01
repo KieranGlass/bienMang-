@@ -67,6 +67,13 @@ def add_child(
         ))
         conn.commit()
 
+def delete_child_from_db(ID):
+    print(f"Deleting child with ID: {ID}")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Children WHERE id=?", (ID,))
+    conn.commit()
+
 def get_schedule(ID):
     """Fetch a complete child schedule record from the database using the child's ID."""
     conn = get_db_connection()
@@ -183,7 +190,7 @@ class Children(tk.Toplevel):
         edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule")
         edit_child_schedule_button.grid(row=2, column=4, padx=5, pady=5, sticky="e" )
 
-        delete_child_button = ttk.Button(panel_frame, text="Delete Child")
+        delete_child_button = ttk.Button(panel_frame, text="Delete Child", command=lambda: self.delete_child())
         delete_child_button.grid(row=3, column=4, padx=5, pady=5, sticky="e" )
 
     def create_child_info_form(self, parent):
@@ -618,22 +625,32 @@ class Children(tk.Toplevel):
             # Call the create_schedule_chart method to display the chart
             self.create_schedule_chart(full_name, schedule_dict)
 
-    def edit_child(self):
+    def edit_child_info(self):
         print("edit an entry")
 
     def delete_child(self):
-        """Prompts the user to enter child details and adds them to the database."""
-        # Get the child's details from the user
-        first_name = simpledialog.askstring("Input", "Enter the child's first name:")
-        last_name = simpledialog.askstring("Input", "Enter the child's last name:")
-        birth_date = simpledialog.askstring("Input", "Enter the child's birth date (YYYY-MM-DD):")
+        # Get the currently selected item in the Treeview
+        selected_item = self.tree.selection()
 
-        if first_name and last_name and birth_date:
-            # Insert the new child into the database
-            add_child(first_name, last_name, birth_date)
+        # Check if any item is selected
+        if not selected_item:
+            messagebox.showinfo("No Selection", "Please select a child to delete.")
+            return
 
-            # Reload the list of children after adding
-            self.load_children()
+        # Retrieve the ID of the selected item (Assuming the ID is stored in the first column)
+        child_id = self.tree.item(selected_item[0])['values'][0]  # Assuming the ID is in the first column
+        child_name = self.tree.item(selected_item[0])['values'][1]
+        # Ask for confirmation to delete
+        confirm = messagebox.askyesno("Confirm Deletion", f"Are you sure you want to permanently delete {child_name}?")
+
+        item_id = int(child_id)
+    
+        
+        if confirm:
+            # Call the delete_child_from_db function to delete the item
+            delete_child_from_db(item_id)
+
+            self.tree.delete(selected_item[0])
 
     def sort_children(self, column, reverse=False):
         """Sort the Treeview by the selected column."""
