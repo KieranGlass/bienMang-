@@ -81,6 +81,26 @@ def get_schedule(ID):
         cursor.execute("SELECT monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, thursday_finish, friday_arrival, friday_finish FROM children WHERE id=?", (ID,))
         schedule_data = cursor.fetchone()
     return schedule_data
+
+def save_edited_child_info(id,
+    first_name, middle_name, last_name, birth_date, year_group, 
+    guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, 
+    guardian_two_fname, guardian_two_lname, guardian_two_contact_no):
+    """Save the edited child information into the database."""
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute('''
+            UPDATE children
+            SET first_name=?, middle_name=?, last_name=?, birth_date=?, year_group=?,
+                guardian_one_fname=?, guardian_one_lname=?, guardian_one_contact_no=?, guardian_one_email=?,
+                guardian_two_fname=?, guardian_two_lname=?, guardian_two_contact_no=?
+            WHERE id=?
+        ''', (first_name, middle_name, last_name, birth_date, year_group, 
+              guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, 
+              guardian_two_fname, guardian_two_lname, guardian_two_contact_no, id))
+        conn.commit()
+    
+    messagebox.showinfo("Success", "Child info updated successfully.")
 class Children(tk.Toplevel):
     
     def __init__(self, dashboard):
@@ -184,7 +204,7 @@ class Children(tk.Toplevel):
         add_child_button = ttk.Button(panel_frame, text="Add New Child", command=self.add_new_child)
         add_child_button.grid(row=0, column=4, padx=5, pady=5, sticky="e" )
 
-        edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info", command=self.edit_child)
+        edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info", command=self.edit_child_info)
         edit_child_info_button.grid(row=1, column=4, padx=5, pady=5, sticky="e" )
         
         edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule")
@@ -418,9 +438,6 @@ class Children(tk.Toplevel):
         self.dob_pair = self.create_label_value_pair(self.name_frame, "Date of Birth", 4, 0)
         self.year_group_pair = self.create_label_value_pair(self.name_frame, "Year Group", 5, 0)
 
-        self.edit_child_button = ttk.Button(self.name_frame, text="Edit Child", command=self.edit_child)
-        self.edit_child_button.grid(row=7, column=0, padx=5, pady=5, sticky="sew")
-
         # ---------------- Right Half ----------------
         # Placeholder for additional information labels (Right half will have 7 labels)
         self.additional_info_frame = ttk.Frame(self.info_frame)
@@ -626,7 +643,57 @@ class Children(tk.Toplevel):
             self.create_schedule_chart(full_name, schedule_dict)
 
     def edit_child_info(self):
-        print("edit an entry")
+        """Open a pop-up window to edit the child info."""
+        selected_item = self.tree.selection()
+
+        if not selected_item:
+            messagebox.showerror("Error", "No item selected.")
+            return
+
+        child_id = self.tree.item(selected_item[0])['values'][0]
+
+        child_data = get_child(child_id)
+
+        if not child_data:
+            messagebox.showerror("Error", "No child found with this ID.")
+            return
+        
+        # Create the root window
+        root = tk.Tk()
+        root.title("Edit Child Information")
+        
+        # Create labels and entry widgets
+        labels = ["First Name", "Middle Name", "Last Name", "Birth Date", "Year Group",
+                  "Guardian 1 First Name", "Guardian 1 Last Name", "Guardian 1 Contact No.", "Guardian 1 Email",
+                  "Guardian 2 First Name", "Guardian 2 Last Name", "Guardian 2 Contact No."]
+        
+        entries = []
+        
+        for idx, label in enumerate(labels):
+            tk.Label(root, text=label).grid(row=idx, column=0, padx=10, pady=5)
+            entry = tk.Entry(root)
+            entry.grid(row=idx, column=1, padx=10, pady=5)
+            entries.append(entry)
+        
+        # Pre-fill the fields with existing data
+        for idx, entry in enumerate(entries):
+            value = child_data[idx] if child_data[idx] is not None else ""
+            entry.insert(0, value)
+
+        def submit_edits():
+            # Get the edited data from the fields
+            edited_data = [entry.get() for entry in entries]
+    
+            # Convert empty strings to None before saving to the database
+            edited_data = [None if value == "" else value for value in edited_data]
+    
+            # Save the data to the DB
+            save_edited_child_info(child_id, *edited_data)
+            root.destroy()
+
+        # Add a submit button
+        submit_button = tk.Button(root, text="Save Changes", command=submit_edits)
+        submit_button.grid(row=len(labels), column=0, columnspan=2, pady=10)
 
     def delete_child(self):
         # Get the currently selected item in the Treeview
