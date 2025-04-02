@@ -88,7 +88,7 @@ def create_tables():
     ('Neville', NULL, 'Longbottom', '2022-01-11', 'Petits', 'Alice', 'Longbottom', '555-5678', 'alice.longbottom@email.com', 'Frank', 'Longbottom', '555-6789',
     'N/A', 'N/A', 'N/A', 'N/A', '08:00', '16:00', 'N/A', 'N/A', '08:00', '15:00'),
     
-    ('Ginny', 'Molly', 'Weasley', '2023-04-09', 'Bebes', 'Arthur', 'Weasley', '555-7890', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-8901', 
+    ('Ginny', 'Molly', 'Weasley', '2023-04-09', 'Moyens', 'Arthur', 'Weasley', '555-7890', 'arthur.weasley@email.com', 'Molly', 'Weasley', '555-8901', 
     'N/A', 'N/A', 'N/A', 'N/A', '07:30', '16:00', 'N/A', 'N/A', 'N/A', 'N/A'),
     
     ('Luna', NULL, 'Lovegood', '2022-09-19', 'Petits', 'Xenophilius', 'Lovegood', '555-9012', 'xenophilius.lovegood@email.com', NULL, NULL, NULL, 

@@ -17,13 +17,12 @@ from styles import apply_styles
 '''
 TODO:
 - Design elements and buttons to pop and look nicer 
-- Edit Schedule Function
-- Edit info function needs to update treeview immediately
 - address how page looks when there are no entries
 - responsiveness
 - Global sidebar
 - implement email and other validations when editing
-- 
+- Consider using `matplotlib.pyplot.close()`.       
+desktop-1  |   fig, ax = plt.subplots(figsize=(6, 4))
 '''
 
 def get_db_connection():
@@ -32,10 +31,12 @@ def get_db_connection():
 
 def get_all_children():
     """Fetch all children records from the database."""
+
     conn = get_db_connection()
     with closing(conn.cursor()) as cursor:
         cursor.execute("SELECT * FROM children")
         children = cursor.fetchall()
+        
     return children
 
 def get_child(ID):
@@ -84,6 +85,34 @@ def delete_child_from_db(ID):
     cursor = conn.cursor()
     cursor.execute("DELETE FROM Children WHERE id=?", (ID,))
     conn.commit()
+
+def get_child_count():
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT COUNT(*) FROM Children")
+        total = cursor.fetchone()[0]
+    return total
+
+def get_age_group_petits():
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT COUNT(*) FROM Children WHERE year_group = 'Petits'")
+        total = cursor.fetchone()[0]
+    return total
+
+def get_age_group_moyens():
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT COUNT(*) FROM Children WHERE year_group = 'Moyens'")
+        total = cursor.fetchone()[0]
+    return total
+
+def get_age_group_grands():
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT COUNT(*) FROM Children WHERE year_group = 'Grands'")
+        total = cursor.fetchone()[0]
+    return total
 
 def get_schedule(ID):
     """Fetch a complete child schedule record from the database using the child's ID."""
@@ -220,16 +249,20 @@ class Children(tk.Toplevel):
         label_widget = ttk.Label(panel_frame, text="Creche Information", anchor="w", font=("Helvetica", 16))
         label_widget.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
-        label_widget = ttk.Label(panel_frame, text="Total Children: ", anchor="w", font=("Helvetica", 12))
+        total = get_child_count()
+        label_widget = ttk.Label(panel_frame, text=f"Total Children: {total}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=1, column=0, padx=5, pady=5, sticky="w")
 
-        label_widget = ttk.Label(panel_frame, text="Petits Section: ", anchor="w", font=("Helvetica", 12))
+        petits = get_age_group_petits()
+        label_widget = ttk.Label(panel_frame, text=f"Petits Section: {petits}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
-        label_widget = ttk.Label(panel_frame, text="Moyens Section: ", anchor="w", font=("Helvetica", 12))
+        moyens = get_age_group_moyens()
+        label_widget = ttk.Label(panel_frame, text=f"Moyens Section: {moyens}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=3, column=0, padx=5, pady=5, sticky="w")
-
-        label_widget = ttk.Label(panel_frame, text="Grands Section: ", anchor="w", font=("Helvetica", 12))
+        
+        grands = get_age_group_grands()
+        label_widget = ttk.Label(panel_frame, text=f"Grands Section: {grands}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=4, column=0, padx=5, pady=5, sticky="w")
 
         add_child_button = ttk.Button(panel_frame, text="Add New Child", command=self.add_new_child)
@@ -720,6 +753,7 @@ class Children(tk.Toplevel):
     
             # Save the data to the DB
             save_edited_child_info(child_id, *edited_data)
+            self.load_children()
             root.destroy()
 
         # Add a submit button
@@ -774,6 +808,7 @@ class Children(tk.Toplevel):
     
             # Save the data to the DB
             save_edited_child_schedule(child_id, *edited_data)
+            self.load_children()
             root.destroy()
 
         # Add a submit button
