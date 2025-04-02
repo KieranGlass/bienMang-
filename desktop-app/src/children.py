@@ -14,6 +14,17 @@ from datetime import datetime, timedelta
 from PIL import Image, ImageTk
 
 from styles import apply_styles
+'''
+TODO:
+- Design elements and buttons to pop and look nicer 
+- Edit Schedule Function
+- Edit info function needs to update treeview immediately
+- address how page looks when there are no entries
+- responsiveness
+- Global sidebar
+- implement email and other validations when editing
+- 
+'''
 
 def get_db_connection():
     conn = sqlite3.connect('/database/bien-manger.db')
@@ -101,6 +112,26 @@ def save_edited_child_info(id,
         conn.commit()
     
     messagebox.showinfo("Success", "Child info updated successfully.")
+
+def save_edited_child_schedule(id, 
+    monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, 
+    wednesday_arrival, wednesday_finish, thursday_arrival, thursday_finish, 
+    friday_arrival, friday_finish):
+
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute('''
+            UPDATE children
+            SET monday_arrival=?, monday_finish=?, tuesday_arrival=?, tuesday_finish=?, wednesday_arrival=?, 
+                wednesday_finish=?, thursday_arrival=?, thursday_finish=?, friday_arrival=?, friday_finish=?
+            WHERE id=?
+        ''', (monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, wednesday_arrival, 
+            wednesday_finish, thursday_arrival, thursday_finish, friday_arrival, friday_finish, id))
+        conn.commit()
+
+    messagebox.showinfo("Success", "Child schedule updated successfully.")
+
+
 class Children(tk.Toplevel):
     
     def __init__(self, dashboard):
@@ -207,7 +238,7 @@ class Children(tk.Toplevel):
         edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info", command=self.edit_child_info)
         edit_child_info_button.grid(row=1, column=4, padx=5, pady=5, sticky="e" )
         
-        edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule")
+        edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule", command=lambda: self.edit_child_schedule())
         edit_child_schedule_button.grid(row=2, column=4, padx=5, pady=5, sticky="e" )
 
         delete_child_button = ttk.Button(panel_frame, text="Delete Child", command=lambda: self.delete_child())
@@ -689,6 +720,60 @@ class Children(tk.Toplevel):
     
             # Save the data to the DB
             save_edited_child_info(child_id, *edited_data)
+            root.destroy()
+
+        # Add a submit button
+        submit_button = tk.Button(root, text="Save Changes", command=submit_edits)
+        submit_button.grid(row=len(labels), column=0, columnspan=2, pady=10)
+
+    def edit_child_schedule(self):
+        """Open a pop-up window to edit the child schedule."""
+        selected_item = self.tree.selection()
+
+        if not selected_item:
+            messagebox.showerror("Error", "No item selected.")
+            return
+
+        child_id = self.tree.item(selected_item[0])['values'][0]
+
+        child_data = get_schedule(child_id)
+
+        if not child_data:
+            messagebox.showerror("Error", "No child found with this ID.")
+            return
+        
+        # Create the root window
+        root = tk.Tk()
+        root.title("Edit Child Schedule Info")
+        
+        # Create labels and entry widgets
+        labels = ["Monday Arrival", "Monday Finish", "Tuesday Arrival", "Tuesday Finish", 
+                "Wednesday Arrival", "Wednesday Finish", "Thursday Arrival", "Thursday Finish", 
+                "Friday Arrival", "Friday Finish"]
+        
+        entries = []
+        time_slots = self.generate_time_slots("7:30", "18:00", 15)
+        
+        for idx, label in enumerate(labels):
+            tk.Label(root, text=label).grid(row=idx, column=0, padx=10, pady=5)
+            entry = ttk.Combobox(root, values=time_slots, font=("Arial", 12))
+            entry.grid(row=idx, column=1, padx=10, pady=5)
+            entries.append(entry)
+        
+        # Pre-fill the fields with existing data
+        for idx, entry in enumerate(entries):
+            value = child_data[idx] if child_data[idx] is not None else ""
+            entry.insert(0, value)
+
+        def submit_edits():
+            # Get the edited data from the fields
+            edited_data = [entry.get() for entry in entries]
+    
+            # Convert empty strings to None before saving to the database
+            edited_data = [None if value == "" else value for value in edited_data]
+    
+            # Save the data to the DB
+            save_edited_child_schedule(child_id, *edited_data)
             root.destroy()
 
         # Add a submit button
