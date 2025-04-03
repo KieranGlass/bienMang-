@@ -109,6 +109,20 @@ def create_tables():
     ('Cho', NULL, 'Chang', '2022-12-10', 'Grands', 'Julien', 'Chang', '555-9900', 'mr.chang@email.com', NULL, NULL, NULL, 
     'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', '08:00', '16:00')
                     ''')
+            
+            # Create the registers table
+            cursor.execute(''' 
+            CREATE TABLE IF NOT EXISTS registers (
+                register_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                child_id INTEGER NOT NULL,
+                adjusted_start_time TEXT,
+                adjusted_end_time TEXT,
+                FOREIGN KEY (child_id) REFERENCES children(id),
+                           
+                UNIQUE(date, child_id)
+            )
+            ''')
 
             # Commit the changes and leave the connection open for further operations
             conn.commit()
