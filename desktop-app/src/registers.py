@@ -3,6 +3,7 @@ from contextlib import closing
 
 import tkinter as tk
 from tkinter import ttk
+from tkcalendar import Calendar
 from datetime import datetime, timedelta
 
 def get_db_connection():
@@ -74,26 +75,51 @@ class Registers(tk.Toplevel):
         self.create_registers_window()      
 
     def create_registers_window(self):
-        # Add a Home button
-        home_button = ttk.Button(self, text="Home", command=self.go_home)
-        home_button.pack(pady=20) 
+        # Set up the grid layout with three columns
+        self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar (fixed width)
+        self.grid_columnconfigure(1, weight=4, minsize=600)  # Register list (flexible)
+        self.grid_columnconfigure(2, weight=1, minsize=200)  # Calendar (flexible)
 
-        # Date selection (for example, selecting from a calendar)
-        self.date_label = tk.Label(self, text="Select Date:")
-        self.date_label.pack(pady=10)
-
-        self.date_entry = ttk.Entry(self)  # Text field for date selection (e.g., YYYY-MM-DD)
-        self.date_entry.pack(pady=10)
-
-        select_button = ttk.Button(self, text="Select", command=self.show_register_for_day)
-        select_button.pack(pady=10)
-
-        # Frame for displaying the register list
+        # Add the sidebar
+        self.create_global_sidebar()
+        
+        # Column 2 (Middle): Register list and day title
         self.register_frame = ttk.Frame(self)
-        self.register_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        self.register_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+
+        # Date selection and calendar in column 3
+        self.calendar_frame = ttk.Frame(self)
+        self.calendar_frame.grid(row=0, column=2, sticky="nsew", padx=20, pady=20)
+
+        # Calendar widget for date selection
+        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd')
+        self.calendar.grid(pady=10)
+
+        select_button = ttk.Button(self.calendar_frame, text="Select", command=self.show_register_for_day)
+        select_button.grid(pady=10)
+
+    def create_global_sidebar(self):
+        """ Create the sidebar with tabs """
+        # Sidebar container (frame)
+        sidebar_frame = ttk.Frame(self, relief="raised")
+        sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsw")
+
+        # Tab buttons
+        self.create_sidebar_tab(sidebar_frame, "Home", self.go_home, 0)
+        self.create_sidebar_tab(sidebar_frame, "Tab 1", self.go_home, 1)
+        self.create_sidebar_tab(sidebar_frame, "Tab 2", self.go_home, 2)
+        self.create_sidebar_tab(sidebar_frame, "Tab 3", self.go_home, 3)
+        self.create_sidebar_tab(sidebar_frame, "Tab 4", self.go_home, 4)
+        self.create_sidebar_tab(sidebar_frame, "Tab 5", self.go_home, 5)
+        self.create_sidebar_tab(sidebar_frame, "Log Out", self.go_home, 6)
+
+    def create_sidebar_tab(self, frame, text, command, row):
+        """ Helper function to create each sidebar tab """
+        tab_button = ttk.Button(frame, text=text, command=command)
+        tab_button.grid(row=row, column=0, padx=10, pady=5, sticky="w")
 
     def show_register_for_day(self):
-        selected_date_str = self.date_entry.get()
+        selected_date_str = self.calendar.get_date()
         
         try:
             # Convert the selected date into a datetime object
@@ -104,12 +130,15 @@ class Registers(tk.Toplevel):
         
         # Fetch children data and their registers for the selected date
         self.display_children_for_day(selected_date)
+        
 
     def display_children_for_day(self, selected_date):
         """Display children and their register information."""
         # Clear previous contents
         for widget in self.register_frame.winfo_children():
             widget.destroy()
+
+        self.update_day_label(selected_date)
 
         children = get_all_children()
 
@@ -118,8 +147,10 @@ class Registers(tk.Toplevel):
         # Fetch or create register entries for the selected date
         search_existing_register(selected_date_str, children)
 
+        # Loop through the children and display their schedule
+        i = 1  # Keep track of row index
         for child in children:
-            child_id, first_name, last_name, _, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
+            child_id, first_name, middle_name, last_name, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
             tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, \
             thursday_finish, friday_arrival, friday_finish = child
 
@@ -138,22 +169,60 @@ class Registers(tk.Toplevel):
             else:
                 adjusted_start, adjusted_end = arrival_time, finish_time
 
-            # Display the child's information and their schedule
+            # Create a row_frame for each child
             row_frame = ttk.Frame(self.register_frame)
-            row_frame.pack(fill='x', padx=10, pady=5)
+            row_frame.grid(row=i, column=0, sticky="ew", padx=10, pady=5)
 
+            # Display child's information in the grid
             child_name_label = tk.Label(row_frame, text=f"{first_name} {last_name}")
-            child_name_label.pack(side="left", padx=10)
+            child_name_label.grid(row=0, column=0, padx=10)
 
             child_start_label = tk.Label(row_frame, text=adjusted_start)
-            child_start_label.pack(side="left", padx=10)
+            child_start_label.grid(row=0, column=1, padx=10)
 
             child_end_label = tk.Label(row_frame, text=adjusted_end)
-            child_end_label.pack(side="left", padx=10)
+            child_end_label.grid(row=0, column=2, padx=10)
 
             # Button to adjust the schedule for that day
             adjust_button = ttk.Button(row_frame, text="Adjust", command=lambda child_id=child_id, date=selected_date: self.adjust_schedule(child_id, date))
-            adjust_button.pack(side="left", padx=10)
+            adjust_button.grid(row=0, column=3, padx=10)
+
+            # Increment the row index for the next child
+            i += 1
+
+    def update_day_label(self, date):
+        """ Update the label in the middle column to show the selected day """
+        from datetime import datetime
+        
+        
+        # Format the selected date into the desired format (e.g., "Monday, 2nd June 2025")
+        day_name = date.strftime("%A")
+        print(f"{day_name}")
+        day_number = date.day
+        print(f"{day_number}")
+        month_name = date.strftime("%B")
+        print(f"{month_name}")
+        year = date.year
+        print(f"{year}")
+        
+        # Handle the suffix for the day number (e.g., 1st, 2nd, 3rd, etc.)
+        suffix = 'th'
+        if 4 <= day_number <= 20:
+            suffix = 'th'
+        elif day_number % 10 == 1:
+            suffix = 'st'
+        elif day_number % 10 == 2:
+            suffix = 'nd'
+        elif day_number % 10 == 3:
+            suffix = 'rd'
+
+        # Format the date string
+        formatted_date = f"{day_name} {day_number}{suffix} {month_name} {year}"
+        print(f"{formatted_date}")
+
+       
+        self.day_label = tk.Label(self.register_frame, text=formatted_date, font=("Arial", 18))
+        self.day_label.grid(row=0, column=0, columnspan=4, pady=10)
 
     def adjust_schedule(self, child_id, date):
         """Adjust the schedule for a child."""
