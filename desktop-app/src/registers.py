@@ -28,7 +28,7 @@ def search_existing_register(register_date_str, children):
         cursor.execute('SELECT 1 FROM registers WHERE date = ?', (register_date_str,))
         if not cursor.fetchone():
             for child in children:
-                child_id, first_name, last_name, _, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
+                child_id, first_name, middle_name, last_name, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
                 tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, \
                 thursday_finish, friday_arrival, friday_finish = child
 
@@ -147,8 +147,26 @@ class Registers(tk.Toplevel):
         # Fetch or create register entries for the selected date
         search_existing_register(selected_date_str, children)
 
+        # Configure the grid for the table-like layout
+        self.register_frame.grid_columnconfigure(0, weight=2, minsize=150)  # Column for name
+        self.register_frame.grid_columnconfigure(1, weight=1, minsize=100)  # Column for start time
+        self.register_frame.grid_columnconfigure(2, weight=1, minsize=100)  # Column for end time
+        self.register_frame.grid_columnconfigure(3, weight=1, minsize=100)  # Column for adjust button
+
+        name_header = tk.Label(self.register_frame, text="Child Name", font=("Arial", 12, "bold"))
+        name_header.grid(row=1, column=0, padx=10, sticky="ew")
+
+        start_header = tk.Label(self.register_frame, text="Start Time", font=("Arial", 12, "bold"))
+        start_header.grid(row=1, column=1, padx=10, sticky="ew")
+
+        end_header = tk.Label(self.register_frame, text="End Time", font=("Arial", 12, "bold"))
+        end_header.grid(row=1, column=2, padx=10, sticky="ew")
+
+        adjust_header = tk.Label(self.register_frame, text="Adjust", font=("Arial", 12, "bold"))
+        adjust_header.grid(row=1, column=3, padx=10, sticky="ew")
+
         # Loop through the children and display their schedule
-        i = 1  # Keep track of row index
+        i = 2  # Keep track of row index
         for child in children:
             child_id, first_name, middle_name, last_name, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
             tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, \
@@ -169,23 +187,19 @@ class Registers(tk.Toplevel):
             else:
                 adjusted_start, adjusted_end = arrival_time, finish_time
 
-            # Create a row_frame for each child
-            row_frame = ttk.Frame(self.register_frame)
-            row_frame.grid(row=i, column=0, sticky="ew", padx=10, pady=5)
-
             # Display child's information in the grid
-            child_name_label = tk.Label(row_frame, text=f"{first_name} {last_name}")
-            child_name_label.grid(row=0, column=0, padx=10)
+            child_name_label = tk.Label(self.register_frame, text=f"{first_name} {last_name}")
+            child_name_label.grid(row=i, column=0, pady=10, sticky="ew")
 
-            child_start_label = tk.Label(row_frame, text=adjusted_start)
-            child_start_label.grid(row=0, column=1, padx=10)
+            child_start_label = tk.Label(self.register_frame, text=adjusted_start)
+            child_start_label.grid(row=i, column=1, padx=10, sticky="ew")
 
-            child_end_label = tk.Label(row_frame, text=adjusted_end)
-            child_end_label.grid(row=0, column=2, padx=10)
+            child_end_label = tk.Label(self.register_frame, text=adjusted_end)
+            child_end_label.grid(row=i, column=2, padx=10, sticky="ew")
 
-            # Button to adjust the schedule for that day
-            adjust_button = ttk.Button(row_frame, text="Adjust", command=lambda child_id=child_id, date=selected_date: self.adjust_schedule(child_id, date))
-            adjust_button.grid(row=0, column=3, padx=10)
+            # Button to adjust the schedule for that day (always in the same column)
+            adjust_button = ttk.Button(self.register_frame, text="Adjust", command=lambda child_id=child_id, date=selected_date: self.adjust_schedule(child_id, date))
+            adjust_button.grid(row=i, column=3, padx=10, sticky="ew")
 
             # Increment the row index for the next child
             i += 1
