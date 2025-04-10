@@ -124,6 +124,21 @@ def create_tables():
             )
             ''')
 
+
+            cursor.execute(''' 
+            CREATE TABLE IF NOT EXISTS menus (
+                menu_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                baby_main TEXT NOT NULL,
+                baby_dessert TEXT NOT NULL,
+                grands_starter TEXT NOT NULL,
+                grands_main TEXT NOT NULL,
+                grands_dessert TEXT NOT NULL,
+                           
+                UNIQUE(date, menu_id)
+            )
+            ''')
+
             # Commit the changes and leave the connection open for further operations
             conn.commit()
 
