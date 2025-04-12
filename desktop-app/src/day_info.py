@@ -51,38 +51,56 @@ def search_adjusted_schedule(register_date_str, child_id):
         adjusted_schedule = cursor.fetchone()
     return adjusted_schedule
 
+def get_menu_by_date(selected_date):
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute('SELECT baby_main, baby_dessert, grands_starter, grands_main, grands_dessert FROM menus WHERE date = ?', (selected_date,))
+        menu = cursor.fetchone()
+    return menu
+
 class DayInfoPage(tk.Toplevel):
     def __init__(self, parent, selected_date):
         super().__init__(parent)
-        self.selected_date = selected_date  # The date clicked on the calendar
+        self.selected_date = selected_date
         self.title(f"Details for {self.selected_date}")
         self.geometry("1400x900")
+
+        title_date = self.format_title_date(selected_date)
         
         # Create a label for the day’s date
-        self.date_label = tk.Label(self, text=f"Information for {self.selected_date}", font=("Helvetica", 16))
+        self.date_label = tk.Label(self, text=title_date, font=("Helvetica", 16))
         self.date_label.grid(pady=10)
 
-        # Create fields to display data (menu, register, etc.)
-        self.menu_label = tk.Label(self, text="Menu: ", font=("Helvetica", 12))
-        self.menu_label.grid(pady=5)
+        # Menu Label
+        self.menu_label = tk.Label(self, text="Menus", font=("Helvetica", 14, "bold"))
+        self.menu_label.grid(row=1, column=0, pady=5, sticky="w", padx=10)
 
-        self.menu_info = tk.Label(self, text="", font=("Helvetica", 12))  # To be populated with DB data
-        self.menu_info.grid(pady=5)
+        # Baby Menu Section
+        self.baby_menu_frame = tk.LabelFrame(self, text="Baby Menu", font=("Helvetica", 12, "bold"), padx=10, pady=10)
+        self.baby_menu_frame.grid(row=2, column=0, sticky="new", padx=10)
+
+        # Grands Menu Section
+        self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", font=("Helvetica", 12, "bold"), padx=10, pady=10)
+        self.grands_menu_frame.grid(row=3, column=0, sticky="new", padx=10)    
 
         self.register_label = tk.Label(self, text="Register: ", font=("Helvetica", 12))
-        self.register_label.grid(pady=5)
+        self.register_label.grid(row=1, column=1, pady=5,  padx=10, sticky="w")
 
         self.register_frame = ttk.Frame(self)
-        self.register_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        self.register_frame.grid(row=2, column=1, sticky="nsew", padx=10, pady=10)
 
         self.display_register(selected_date)
+        self.display_menu(selected_date)
 
         # Back button to go back to the calendar dashboard
         self.back_button = tk.Button(self, text="Close", command=self.go_back)
-        self.back_button.grid(pady=10)
+        self.back_button.grid(row=3, column=0, columnspan=2, pady=10)
 
-        # Populate data for the selected date
-        #self.load_day_info(self.selected_date)
+        # Configure the grid layout of the window to be responsive
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=2)  # More weight for the register frame
+        self.grid_rowconfigure(2, weight=1)  # Let the main content row expand
+        self.grid_rowconfigure(3, weight=1)
 
     def display_register(self, selected_date):
         
@@ -98,13 +116,13 @@ class DayInfoPage(tk.Toplevel):
         self.register_frame.grid_columnconfigure(2, weight=1, minsize=100)  # Column for end time
 
         name_header = tk.Label(self.register_frame, text="Child Name", font=("Arial", 12, "bold"))
-        name_header.grid(row=1, column=0, padx=10, sticky="ew")
+        name_header.grid(row=1, column=0, padx=10, sticky="nsw")
 
         start_header = tk.Label(self.register_frame, text="Start Time", font=("Arial", 12, "bold"))
-        start_header.grid(row=1, column=1, padx=10, sticky="ew")
+        start_header.grid(row=1, column=1, padx=10, sticky="nsew")
 
         end_header = tk.Label(self.register_frame, text="End Time", font=("Arial", 12, "bold"))
-        end_header.grid(row=1, column=2, padx=10, sticky="ew")
+        end_header.grid(row=1, column=2, padx=10, sticky="nsew")
 
         i = 2  # Keep track of row index
         for child in children:
@@ -129,44 +147,84 @@ class DayInfoPage(tk.Toplevel):
             else:
                 adjusted_start, adjusted_end = arrival_time, finish_time
 
-            # Display child's information in the grid
-            child_name_label = tk.Label(self.register_frame, text=f"{first_name} {last_name}")
-            child_name_label.grid(row=i, column=0, pady=10, sticky="ew")
+            if adjusted_start != "N/A":
 
-            child_start_label = tk.Label(self.register_frame, text=adjusted_start)
-            child_start_label.grid(row=i, column=1, padx=10, sticky="ew")
+                row_frame = tk.Frame(self.register_frame, bg="#f9f9f9", highlightbackground="#ccc", highlightthickness=1)
+                row_frame.grid(row=i, column=0, columnspan=3, sticky="nsew", pady=2)
+                row_frame.grid_columnconfigure(0, weight=2)
+                row_frame.grid_columnconfigure(1, weight=1)
+                row_frame.grid_columnconfigure(2, weight=1)
 
-            child_end_label = tk.Label(self.register_frame, text=adjusted_end)
-            child_end_label.grid(row=i, column=2, padx=10, sticky="ew")
+                # Hover effects
+                def on_enter(e, frame=row_frame):
+                    frame.config(bg="#e0f7fa")
+
+                def on_leave(e, frame=row_frame):
+                    frame.config(bg="#f9f9f9")
+
+                row_frame.bind("<Enter>", on_enter)
+                row_frame.bind("<Leave>", on_leave)
+
+                # Click binding
+                row_frame.bind("<Button-1>", lambda e, cid=child_id: self.open_child_day_info(cid, selected_date))
+
+                # Child info
+                tk.Label(row_frame, text=f"{first_name} {last_name}", width=25, bg="#f9f9f9").grid(row=0, column=0, sticky="w", padx=10, pady=5)
+                tk.Label(row_frame, text=adjusted_start, width=10, bg="#f9f9f9").grid(row=0, column=1, sticky="ew", padx=10)
+                tk.Label(row_frame, text=adjusted_end, width=10, bg="#f9f9f9").grid(row=0, column=2, sticky="ew", padx=10)
 
             # Increment the row index for the next child
             i += 1
 
+    def display_menu(self, selected_date):
+        menu = get_menu_by_date(selected_date)
+        if menu:
+            baby_main, baby_dessert, grands_starter, grands_main, grands_dessert = menu
+
+            # Clear previous content (if reloading)
+            for widget in self.baby_menu_frame.winfo_children():
+                widget.destroy()
+            for widget in self.grands_menu_frame.winfo_children():
+                widget.destroy()
+
+            # Baby Menu (Grid layout inside frame)
+            tk.Label(self.baby_menu_frame, text="Main:", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.baby_menu_frame, text=baby_main, font=("Helvetica", 11)).grid(row=0, column=1, sticky="w", padx=5)
+
+            tk.Label(self.baby_menu_frame, text="Dessert:", font=("Helvetica", 11)).grid(row=1, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.baby_menu_frame, text=baby_dessert, font=("Helvetica", 11)).grid(row=1, column=1, sticky="w", padx=5)
+
+            # Grands Menu
+            tk.Label(self.grands_menu_frame, text="Starter:", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.grands_menu_frame, text=grands_starter, font=("Helvetica", 11)).grid(row=0, column=1, sticky="w", padx=5)
+
+            tk.Label(self.grands_menu_frame, text="Main:", font=("Helvetica", 11)).grid(row=1, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.grands_menu_frame, text=grands_main, font=("Helvetica", 11)).grid(row=1, column=1, sticky="w", padx=5)
+
+            tk.Label(self.grands_menu_frame, text="Dessert:", font=("Helvetica", 11)).grid(row=2, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.grands_menu_frame, text=grands_dessert, font=("Helvetica", 11)).grid(row=2, column=1, sticky="w", padx=5)
+
+        else:
+            tk.Label(self.baby_menu_frame, text="No menu for this day.", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w")
+            tk.Label(self.grands_menu_frame, text="No menu for this day.", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w")
+
+    def open_child_day_info(self, child_id, selected_date):
+        
+        print(f"Clicked on child {child_id} for date {selected_date}")
+    
+        
+        top = tk.Toplevel(self)
+        top.title("Child Day Info")
+        top.geometry("400x300")
+
+        tk.Label(top, text=f"Child ID: {child_id}\nDate: {selected_date}", font=("Arial", 14)).pack(pady=20)
+  
+    def format_title_date(self, date_str):
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        day = dt.day
+        suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+        return dt.strftime(f"%A {day}{suffix} %B")
+
     def go_back(self):
         """ Closes this window and brings the user back to the calendar dashboard """
-        self.destroy()  # Close the DayInfoPage
-
-    def load_day_info(self, date):
-        """ Fetch and populate data for the selected date from the database """
-        
-        # Example DB query to fetch information for the selected date
-        # Replace with your actual DB fetching logic
-        data = self.get_day_data_from_db(date)
-
-        if data:
-            # Update the UI with the fetched data
-            self.menu_info.config(text=data['menu'])
-            self.register_info.config(text=data['register'])
-        else:
-            # If no data, show a default message
-            self.menu_info.config(text="No menu info available")
-            self.register_info.config(text="No register info available")
-
-    def get_day_data_from_db(self, date):
-        """ Simulate fetching data from a database for the given date """
-        # In a real app, this would be replaced with actual database logic
-        example_data = {
-            "2025-03-29": {'menu': 'Pasta', 'register': 'Register info for March 29'},
-            "2025-03-30": {'menu': 'Salad', 'register': 'Register info for March 30'},
-        }
-        return example_data.get(date, None)  # Returns None if no data is found for the date
+        self.destroy() 
