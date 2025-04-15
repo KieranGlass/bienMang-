@@ -37,7 +37,7 @@ def update_menu(menu_id, baby_main, baby_dessert, grands_starter, grands_main, g
 
 
 
-class Menus(tk.Tk):
+class Menus(tk.Toplevel):
     
     def __init__(self, dashboard):
         super().__init__()
@@ -93,6 +93,20 @@ class Menus(tk.Tk):
         """ Helper function to create each sidebar tab """
         tab_button = ttk.Button(frame, text=text, command=command)
         tab_button.grid(row=row, column=0, padx=10, pady=5, sticky="w")
+
+        style = ttk.Style()
+        style.configure(
+            "Custom.TButton",
+            background="#1e3a5f",  # Darkish blue
+            foreground="white",     # White text
+            font=("Arial", 12, "bold"),
+            relief="raised",        # Raised effect (simulates depth)
+            padding=(10, 5),        # Padding for more space inside
+            borderwidth=2,          # Border width for depth
+            anchor="center",  
+        )
+        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
+        tab_button.configure(style="Custom.TButton")
 
     def show_menu_for_day(self):
         selected_date_str = self.calendar.get_date()

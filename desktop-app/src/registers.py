@@ -72,7 +72,8 @@ class Registers(tk.Toplevel):
         self.geometry("1400x900")
         self.deiconify()
         self.lift()
-        self.create_registers_window()      
+        self.create_registers_window()
+        self.default_register_for_day()   
 
     def create_registers_window(self):
         # Set up the grid layout with three columns
@@ -117,6 +118,31 @@ class Registers(tk.Toplevel):
         """ Helper function to create each sidebar tab """
         tab_button = ttk.Button(frame, text=text, command=command)
         tab_button.grid(row=row, column=0, padx=10, pady=5, sticky="w")
+
+        style = ttk.Style()
+        style.configure(
+            "Custom.TButton",
+            background="#1e3a5f",  # Darkish blue
+            foreground="white",     # White text
+            font=("Arial", 12, "bold"),
+            relief="raised",        # Raised effect (simulates depth)
+            padding=(10, 5),        # Padding for more space inside
+            borderwidth=2,          # Border width for depth
+            anchor="center",  
+        )
+        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
+        tab_button.configure(style="Custom.TButton")
+
+    def default_register_for_day(self):
+        selected_date_str = self.calendar.get_date()
+
+        try:
+            selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d")
+        except ValueError:
+            print("Invalid date format")
+            return
+        
+        self.display_children_for_day(selected_date)
 
     def show_register_for_day(self):
         selected_date_str = self.calendar.get_date()
@@ -271,4 +297,4 @@ class Registers(tk.Toplevel):
 
 if __name__ == "__main__":
     app = Registers()
-    app.mainloop()  # Starts the Tkinter event loop
+    app.mainloop()
