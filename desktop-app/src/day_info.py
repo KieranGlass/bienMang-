@@ -4,6 +4,7 @@ from contextlib import closing
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime, timedelta
+from child_day_info import ChildDayInfoPage
 
 DEFAULT_MENUS = {
         "monday": ("Beef and Carrot Puree", "Apple Compote", "Vegetable Soup", "Sautéed Beef and Potatoes", "Natural Yogurt"),
@@ -236,17 +237,13 @@ class DayInfoPage(tk.Toplevel):
             print("New menu created.")
 
             self.display_menu(selected_date)
-
+ 
     def open_child_day_info(self, child_id, selected_date):
         
         print(f"Clicked on child {child_id} for date {selected_date}")
     
-        
-        top = tk.Toplevel(self)
-        top.title("Child Day Info")
-        top.geometry("400x300")
-
-        tk.Label(top, text=f"Child ID: {child_id}\nDate: {selected_date}", font=("Arial", 14)).pack(pady=20)
+        child_day_info_window = ChildDayInfoPage(self, child_id, selected_date)
+        child_day_info_window.mainloop()
   
     def format_title_date(self, date_str):
         dt = datetime.strptime(date_str, "%Y-%m-%d")

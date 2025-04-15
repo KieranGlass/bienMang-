@@ -262,7 +262,7 @@ class Registers(tk.Toplevel):
 
        
         self.day_label = tk.Label(self.register_frame, text=formatted_date, font=("Arial", 18))
-        self.day_label.grid(row=0, column=0, columnspan=4, pady=10)
+        self.day_label.grid(row=0, column=0, columnspan=4, pady=20, padx=10)
 
     def adjust_schedule(self, child_id, date):
         """Adjust the schedule for a child."""
