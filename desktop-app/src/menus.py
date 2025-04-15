@@ -6,6 +6,14 @@ from tkinter import ttk
 from tkcalendar import Calendar
 from datetime import datetime, timedelta
 
+DEFAULT_MENUS = {
+        "monday": ("Beef and Carrot Puree", "Apple Compote", "Vegetable Soup", "Sautéed Beef and Potatoes", "Natural Yogurt"),
+        "tuesday": ("Chicken and Broccoli Puree", "Fromage Blanc", "Pasta Salad", "Roasted Chicken and Broccoli", "Cheese and Crackers"),
+        "wednesday": ("Lentil and Celeri Puree", "Banana Compote", "Cherry Tomatoes", "Lentil and Vegetable Curry", "Clementines"),
+        "thursday": ("Haddock and Green Bean Puree", "Pear Compote", "Green Bean Salad", "Haddock and Sweet Potato", "Rice Pudding"),
+        "friday": ("Pork and Cauliflower Puree", "Natural Yogurt", "Beetroot Salad", "Roasted Pork and Cauliflower", "Gateau au Chocolat")
+}
+
 def get_db_connection():
     conn = sqlite3.connect('/database/bien-manger.db')
     return conn
@@ -20,7 +28,7 @@ def create_new_menu(date, baby_main, baby_dessert, grands_starter, grands_main, 
     with closing(get_db_connection()) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO menus (date, baby_main, baby_dessert, grands_main, grands_starter, grands_dessert)
+            INSERT INTO menus (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert)
             VALUES (?, ?, ?, ?, ?, ?)''', 
             (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert))
         conn.commit()
@@ -30,7 +38,7 @@ def update_menu(menu_id, baby_main, baby_dessert, grands_starter, grands_main, g
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE menus
-            SET baby_main = ?, baby_dessert = ?, grands_main = ?, grands_starter = ?, grands_dessert = ?
+            SET baby_main = ?, baby_dessert = ?, grands_starter = ?, grands_main = ?, grands_dessert = ?
             WHERE menu_id = ?''',
             (baby_main, baby_dessert, grands_starter, grands_main, grands_dessert, menu_id))
         conn.commit()
@@ -47,7 +55,11 @@ class Menus(tk.Toplevel):
         self.geometry("1400x900")
         self.deiconify()
         self.lift()
-        self.create_menus_window()      
+        self.create_menus_window()
+
+        today = datetime.today()
+        self.calendar.selection_set(today)
+        self.display_menu_for_day(today)
         
 
     def create_menus_window(self):
@@ -141,7 +153,6 @@ class Menus(tk.Toplevel):
 
         if menu:
             print(f"Menu found: {menu}")
-            # Fill the form with existing menu
             for i, value in enumerate(menu[2:]):  # Skip menu_id and date
                 entries[i].insert(0, value)
 
@@ -153,14 +164,27 @@ class Menus(tk.Toplevel):
             action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
 
         else:
-            print("No menu found. Ready to create one.")
+            print("No menu found. creating default...")
 
-            def create_menu():
-                new_values = [e.get() for e in entries]
-                create_new_menu(date_str, *new_values)
-                print("New menu created.")
+            # Load default values based on the weekday
+            weekday = selected_date.strftime("%A").lower()
+            defaults = DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
 
-            action_btn = ttk.Button(self.menus_frame, text="Create Menu", command=create_menu)
+            for i, value in enumerate(defaults):
+                entries[i].insert(0, value)
+
+            new_values = [e.get() for e in entries]
+            create_new_menu(date_str, *new_values)
+            print("New menu created.")
+
+            menu = search_existing_menu(date_str)
+
+            def save_edits():
+                updated_values = [e.get() for e in entries]
+                update_menu(menu[0], *updated_values)
+                print("Menu updated.")
+
+            action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
 
         action_btn.grid(row=len(labels)+2, column=0, columnspan=2, pady=20)
 
@@ -174,4 +198,4 @@ class Menus(tk.Toplevel):
 
 if __name__ == "__main__":
     app = Menus()
-    app.mainloop()  # Starts the Tkinter event loop
+    app.mainloop() 

@@ -5,6 +5,14 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime, timedelta
 
+DEFAULT_MENUS = {
+        "monday": ("Beef and Carrot Puree", "Apple Compote", "Vegetable Soup", "Sautéed Beef and Potatoes", "Natural Yogurt"),
+        "tuesday": ("Chicken and Broccoli Puree", "Fromage Blanc", "Pasta Salad", "Roasted Chicken and Broccoli", "Cheese and Crackers"),
+        "wednesday": ("Lentil and Celeri Puree", "Banana Compote", "Cherry Tomatoes", "Lentil and Vegetable Curry", "Clementines"),
+        "thursday": ("Haddock and Green Bean Puree", "Pear Compote", "Green Bean Salad", "Haddock and Sweet Potato", "Rice Pudding"),
+        "friday": ("Pork and Cauliflower Puree", "Natural Yogurt", "Beetroot Salad", "Roasted Pork and Cauliflower", "Gateau au Chocolat")
+}
+
 def get_db_connection():
     conn = sqlite3.connect('/database/bien-manger.db')
     return conn
@@ -57,6 +65,15 @@ def get_menu_by_date(selected_date):
         cursor.execute('SELECT baby_main, baby_dessert, grands_starter, grands_main, grands_dessert FROM menus WHERE date = ?', (selected_date,))
         menu = cursor.fetchone()
     return menu
+
+def create_new_menu(date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert):
+    with closing(get_db_connection()) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO menus (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert)
+            VALUES (?, ?, ?, ?, ?, ?)''', 
+            (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert))
+        conn.commit()
 
 class DayInfoPage(tk.Toplevel):
     def __init__(self, parent, selected_date):
@@ -178,6 +195,9 @@ class DayInfoPage(tk.Toplevel):
 
     def display_menu(self, selected_date):
         menu = get_menu_by_date(selected_date)
+        selected_date_datetime = datetime.strptime(selected_date, "%Y-%m-%d")
+        date_str = selected_date_datetime.strftime("%Y-%m-%d")
+
         if menu:
             baby_main, baby_dessert, grands_starter, grands_main, grands_dessert = menu
 
@@ -205,8 +225,17 @@ class DayInfoPage(tk.Toplevel):
             tk.Label(self.grands_menu_frame, text=grands_dessert, font=("Helvetica", 11)).grid(row=2, column=1, sticky="w", padx=5)
 
         else:
-            tk.Label(self.baby_menu_frame, text="No menu for this day.", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w")
-            tk.Label(self.grands_menu_frame, text="No menu for this day.", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w")
+            
+            print("No menu found. creating default...")
+
+            # Load default values based on the weekday
+            weekday = selected_date_datetime.strftime("%A").lower()
+            defaults = DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
+
+            create_new_menu(date_str, *defaults)
+            print("New menu created.")
+
+            self.display_menu(selected_date)
 
     def open_child_day_info(self, child_id, selected_date):
         
