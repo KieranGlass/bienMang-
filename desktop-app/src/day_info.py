@@ -80,39 +80,34 @@ class DayInfoPage(tk.Toplevel):
     def __init__(self, parent, selected_date):
         super().__init__(parent)
         self.selected_date = selected_date
-        self.title(f"Details for {self.selected_date}")
-        self.geometry("1400x900")
-
         title_date = self.format_title_date(selected_date)
-        
-        # Create a label for the day’s date
-        self.date_label = tk.Label(self, text=title_date, font=("Helvetica", 16))
-        self.date_label.grid(pady=10)
+        self.title(f"{title_date}")
+        self.geometry("1400x900")
 
         # Menu Label
         self.menu_label = tk.Label(self, text="Menus", font=("Helvetica", 14, "bold"))
-        self.menu_label.grid(row=1, column=0, pady=5, sticky="w", padx=10)
+        self.menu_label.grid(row=0, column=0, pady=5, sticky="w", padx=10)
 
         # Baby Menu Section
         self.baby_menu_frame = tk.LabelFrame(self, text="Baby Menu", font=("Helvetica", 12, "bold"), padx=10, pady=10)
-        self.baby_menu_frame.grid(row=2, column=0, sticky="new", padx=10)
+        self.baby_menu_frame.grid(row=1, column=0, sticky="new", padx=10)
 
         # Grands Menu Section
         self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", font=("Helvetica", 12, "bold"), padx=10, pady=10)
-        self.grands_menu_frame.grid(row=3, column=0, sticky="new", padx=10)    
+        self.grands_menu_frame.grid(row=2, column=0, sticky="new", padx=10)    
 
-        self.register_label = tk.Label(self, text="Register: ", font=("Helvetica", 12))
-        self.register_label.grid(row=1, column=1, pady=5,  padx=10, sticky="w")
+        self.register_label = tk.Label(self, text="Register: ", font=("Helvetica", 14, "bold"))
+        self.register_label.grid(row=0, column=1, pady=5,  padx=10, sticky="w")
 
         self.register_frame = ttk.Frame(self)
-        self.register_frame.grid(row=2, column=1, sticky="nsew", padx=10, pady=10)
+        self.register_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
         self.display_register(selected_date)
         self.display_menu(selected_date)
 
         # Back button to go back to the calendar dashboard
         self.back_button = tk.Button(self, text="Close", command=self.go_back)
-        self.back_button.grid(row=3, column=0, columnspan=2, pady=10)
+        self.back_button.grid(row=2, column=1, columnspan=2, pady=10)
 
         # Configure the grid layout of the window to be responsive
         self.grid_columnconfigure(0, weight=1)
@@ -132,6 +127,7 @@ class DayInfoPage(tk.Toplevel):
         self.register_frame.grid_columnconfigure(0, weight=2, minsize=150)  # Column for name
         self.register_frame.grid_columnconfigure(1, weight=1, minsize=100)  # Column for start time
         self.register_frame.grid_columnconfigure(2, weight=1, minsize=100)  # Column for end time
+        self.register_frame.grid_columnconfigure(3, weight=1, minsize=100)  # Column for info entered
 
         name_header = tk.Label(self.register_frame, text="Child Name", font=("Arial", 12, "bold"))
         name_header.grid(row=1, column=0, padx=10, sticky="nsw")
@@ -141,6 +137,9 @@ class DayInfoPage(tk.Toplevel):
 
         end_header = tk.Label(self.register_frame, text="End Time", font=("Arial", 12, "bold"))
         end_header.grid(row=1, column=2, padx=10, sticky="nsew")
+
+        info_header = tk.Label(self.register_frame, text="Day Info Entered?", font=("Arial", 12, "bold"))
+        info_header.grid(row=1, column=3, padx=10, sticky="nsew")
 
         i = 2  # Keep track of row index
         for child in children:
@@ -168,10 +167,11 @@ class DayInfoPage(tk.Toplevel):
             if adjusted_start != "N/A":
 
                 row_frame = tk.Frame(self.register_frame, bg="#f9f9f9", highlightbackground="#ccc", highlightthickness=1)
-                row_frame.grid(row=i, column=0, columnspan=3, sticky="nsew", pady=2)
+                row_frame.grid(row=i, column=0, columnspan=4, sticky="nsew", pady=2)
                 row_frame.grid_columnconfigure(0, weight=2)
                 row_frame.grid_columnconfigure(1, weight=1)
                 row_frame.grid_columnconfigure(2, weight=1)
+                row_frame.grid_columnconfigure(3, weight=1)
 
                 # Hover effects
                 def on_enter(e, frame=row_frame):
@@ -187,9 +187,10 @@ class DayInfoPage(tk.Toplevel):
                 row_frame.bind("<Button-1>", lambda e, cid=child_id: self.open_child_day_info(cid, selected_date))
 
                 # Child info
-                tk.Label(row_frame, text=f"{first_name} {last_name}", width=25, bg="#f9f9f9").grid(row=0, column=0, sticky="w", padx=10, pady=5)
+                tk.Label(row_frame, text=f"{first_name} {last_name}", width=20, bg="#f9f9f9").grid(row=0, column=0, sticky="w", padx=10, pady=5)
                 tk.Label(row_frame, text=adjusted_start, width=10, bg="#f9f9f9").grid(row=0, column=1, sticky="ew", padx=10)
                 tk.Label(row_frame, text=adjusted_end, width=10, bg="#f9f9f9").grid(row=0, column=2, sticky="ew", padx=10)
+                tk.Label(row_frame, text="Incomplete", width=10, bg="#f9f9f9", fg="#A52A2A").grid(row=0, column=3, sticky="ew", padx=10)
 
             # Increment the row index for the next child
             i += 1

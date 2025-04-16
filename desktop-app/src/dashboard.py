@@ -159,6 +159,8 @@ class Dashboard(tk.Tk):
                 self.calendar.tag_config("weekend", background="pink", foreground="black")
                 self.disabled_weekends.add(day_date)
 
+        self.current_hovered_day = None
+
     def _get_days_in_month(self, date):
         """ Get all the days in the month for the given date """
         # Get the last day of the current month
