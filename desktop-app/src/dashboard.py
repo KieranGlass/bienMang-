@@ -145,6 +145,8 @@ class Dashboard(tk.Tk):
         except:
             print("No tags currently present")
 
+        self.disabled_weekends = set()  # Track disabled (weekend) dates
+
         for day in total_days_in_month:
 
             day_date = day.date()
@@ -155,6 +157,7 @@ class Dashboard(tk.Tk):
             else:  # Weekend days (Saturday and Sunday)
                 self.calendar.calevent_create(day_date, f"{day.day}", "weekend")  # Create event for weekend
                 self.calendar.tag_config("weekend", background="pink", foreground="black")  # Tag for weekend with lightyellow background
+                self.disabled_weekends.add(day_date)
 
     def _get_days_in_month(self, date):
         """ Get all the days in the month for the given date """
@@ -184,14 +187,19 @@ class Dashboard(tk.Tk):
 
     def on_day_selected(self, event):
         """ Handle when a day is selected on the calendar """
-        selected_date = self.calendar.get_date()  # Get the selected date in 'yyyy-mm-dd' format
-        
+        selected_date_str = self.calendar.get_date()  # Get the selected date in 'yyyy-mm-dd' format
+        selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
-        print("Opening day info page for " + selected_date)
+        if selected_date in self.disabled_weekends:
+            print(f"Weekend selected: {selected_date}. Selection disabled.")
+            self.calendar.selection_clear()  # Deselect the date
+            return  # Stop here, don’t open DayInfoPage
+
+        print("Opening day info page for " + selected_date_str)
         # Open a new window (DayInfoPage) showing details for the selected date
         # Pass the selected date to DayInfoPage
 
-        day_info_window = DayInfoPage(self, selected_date)
+        day_info_window = DayInfoPage(self, selected_date_str)
         day_info_window.mainloop()
 
 
