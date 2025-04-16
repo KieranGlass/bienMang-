@@ -51,7 +51,7 @@ class Dashboard(tk.Tk):
         # Create calendar widget
         self.create_calendar(dashboard_frame)
         # Create clock label
-        self.create_clock(dashboard_frame)
+        self.create_clock(self.sidebar_frame)
 
     
        
@@ -59,17 +59,17 @@ class Dashboard(tk.Tk):
     def create_global_sidebar(self):
         """ Create the sidebar with tabs """
         # Sidebar container (frame)
-        sidebar_frame = ttk.Frame(self, relief="raised")
-        sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsw")
+        self.sidebar_frame = ttk.Frame(self, relief="raised")
+        self.sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsw")
 
         # Tab buttons
-        self.create_sidebar_tab(sidebar_frame, "Children", self.show_children, 0)
-        self.create_sidebar_tab(sidebar_frame, "Registers", self.show_registers, 1)
-        self.create_sidebar_tab(sidebar_frame, "Menus", self.show_menus, 2)
-        self.create_sidebar_tab(sidebar_frame, "Reports", self.show_reports, 3)
-        self.create_sidebar_tab(sidebar_frame, "Settings", self.show_settings, 4)
-        self.create_sidebar_tab(sidebar_frame, "Tab 5", self.show_children, 5)
-        self.create_sidebar_tab(sidebar_frame, "Log Out", self.log_out, 6)
+        self.create_sidebar_tab(self.sidebar_frame, "Children", self.show_children, 0)
+        self.create_sidebar_tab(self.sidebar_frame, "Registers", self.show_registers, 1)
+        self.create_sidebar_tab(self.sidebar_frame, "Menus", self.show_menus, 2)
+        self.create_sidebar_tab(self.sidebar_frame, "Reports", self.show_reports, 3)
+        self.create_sidebar_tab(self.sidebar_frame, "Settings", self.show_settings, 4)
+        self.create_sidebar_tab(self.sidebar_frame, "Tab 5", self.show_children, 5)
+        self.create_sidebar_tab(self.sidebar_frame, "Log Out", self.log_out, 6)
 
     def create_sidebar_tab(self, sidebar_frame, label, command, row):
         """ Helper function to create a tab (button) in the sidebar """
@@ -145,18 +145,18 @@ class Dashboard(tk.Tk):
         except:
             print("No tags currently present")
 
-        self.disabled_weekends = set()  # Track disabled (weekend) dates
+        self.disabled_weekends = set()  # Track disabled weekend dates
 
         for day in total_days_in_month:
 
             day_date = day.date()
 
-            if day.weekday() < 5:  # Monday to Friday are 0-4
-                self.calendar.calevent_create(day_date, f"{day.day}", "weekday")  # Create event for weekday
-                self.calendar.tag_config("weekday", background="lightgreen", foreground="black")  # Tag for weekday with lightgreen background
+            if day.weekday() < 5:  # Monday to Friday
+                self.calendar.calevent_create(day_date, f"{day.day}", "weekday")  
+                self.calendar.tag_config("weekday", background="lightgreen", foreground="black") 
             else:  # Weekend days (Saturday and Sunday)
-                self.calendar.calevent_create(day_date, f"{day.day}", "weekend")  # Create event for weekend
-                self.calendar.tag_config("weekend", background="pink", foreground="black")  # Tag for weekend with lightyellow background
+                self.calendar.calevent_create(day_date, f"{day.day}", "weekend")
+                self.calendar.tag_config("weekend", background="pink", foreground="black")
                 self.disabled_weekends.add(day_date)
 
     def _get_days_in_month(self, date):
@@ -172,7 +172,7 @@ class Dashboard(tk.Tk):
     def create_clock(self, parent):
         """ Create and display a label that shows real-time clock """
         self.time_label = tk.Label(parent, font=("Helvetica", 20), bg="#d9f1fb")
-        self.time_label.grid(pady=10)
+        self.time_label.grid(pady=10, sticky="ns")
 
         # Update the clock every second
         self.update_clock()
@@ -201,8 +201,6 @@ class Dashboard(tk.Tk):
 
         day_info_window = DayInfoPage(self, selected_date_str)
         day_info_window.mainloop()
-
-
 
     def show_today(self):
         print("Showing today")
