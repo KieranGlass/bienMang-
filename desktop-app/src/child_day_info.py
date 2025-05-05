@@ -118,7 +118,7 @@ class ChildDayInfoPage(tk.Toplevel):
             self.existing_day_data = load_day_info(self)
 
             self.slider_words = {
-                1: "None",
+                1: "Nothing",
                 2: "A Little",
                 3: "Okay",
                 4: "Good",

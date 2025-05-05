@@ -99,9 +99,6 @@ class Dashboard(tk.Tk):
         parent.grid_rowconfigure(0, weight=1)  # Make the row with the calendar expand
         parent.grid_columnconfigure(0, weight=1)
 
-        # Display the current date on the calendar
-        # self.calendar.set_date(datetime.today())
-
         # Bind the calendar's day selection to a function
         self.calendar.bind("<<CalendarSelected>>", self.on_day_selected)
         # Bind the month change event to highlight the weekdays again
