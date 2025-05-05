@@ -150,6 +150,7 @@ def create_tables():
                 poop_count INTEGER DEFAULT 0,
                 sleep_duration TEXT,
                 comments TEXT,
+                completed INTEGER DEFAULT 0, 
                 FOREIGN KEY (child_id) REFERENCES children(id),
                 UNIQUE(child_id, date)
             )       

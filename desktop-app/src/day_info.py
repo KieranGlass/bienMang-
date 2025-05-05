@@ -76,6 +76,13 @@ def create_new_menu(date, baby_main, baby_dessert, grands_starter, grands_main, 
             (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert))
         conn.commit()
 
+def get_completed_status(selected_date, child_id):
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        cursor.execute('SELECT completed FROM child_day_info WHERE date = ? AND child_id = ?', (selected_date, child_id,))
+        status = cursor.fetchone()
+    return status
+
 class DayInfoPage(tk.Toplevel):
     def __init__(self, parent, selected_date):
         super().__init__(parent)
@@ -190,7 +197,16 @@ class DayInfoPage(tk.Toplevel):
                 tk.Label(row_frame, text=f"{first_name} {last_name}", width=20, bg="#f9f9f9").grid(row=0, column=0, sticky="w", padx=10, pady=5)
                 tk.Label(row_frame, text=adjusted_start, width=10, bg="#f9f9f9").grid(row=0, column=1, sticky="ew", padx=10)
                 tk.Label(row_frame, text=adjusted_end, width=10, bg="#f9f9f9").grid(row=0, column=2, sticky="ew", padx=10)
-                tk.Label(row_frame, text="Incomplete", width=10, bg="#f9f9f9", fg="#A52A2A").grid(row=0, column=3, sticky="ew", padx=10)
+                status = get_completed_status(selected_date, child_id)
+                print(f"{status}")
+                if status and status[0] == 1:
+                    status_text = "Complete"
+                    status_color = "#4CAF50"
+                else:
+                    status_text = "Incomplete"
+                    status_color = "#A52A2A"
+
+                tk.Label(row_frame, text=status_text, width=10, bg="#f9f9f9", fg=status_color).grid(row=0, column=3, sticky="ew", padx=10)
 
             # Increment the row index for the next child
             i += 1
@@ -240,9 +256,10 @@ class DayInfoPage(tk.Toplevel):
             self.display_menu(selected_date)
  
     def open_child_day_info(self, child_id, selected_date):
-        
+        """Open the child day info page."""
         print(f"Clicked on child {child_id} for date {selected_date}")
     
+        # Create the child window
         child_day_info_window = ChildDayInfoPage(self, child_id, selected_date)
         child_day_info_window.mainloop()
   
@@ -251,6 +268,12 @@ class DayInfoPage(tk.Toplevel):
         day = dt.day
         suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
         return dt.strftime(f"%A {day}{suffix} %B")
+    
+    def refresh_register(self, selected_date):
+        """Refresh the register display."""
+
+        # Re-fetch and display the register for the selected date
+        self.display_register(selected_date)
 
     def go_back(self):
         """ Closes this window and brings the user back to the calendar dashboard """
