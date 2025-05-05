@@ -19,6 +19,67 @@ def get_child_by_id(child_id):
     
     return child
 
+def save_day_info(self):
+    child_id = self.child_id
+    selected_date = self.selected_date
+    conn = get_db_connection()
+    with closing(conn.cursor()) as cursor:
+        # Get current data from the UI
+        print("Sliders dict keys:", list(self.sliders.keys()))
+        starter = self.sliders.get("starter", None)
+        main = self.sliders.get("main")
+        dessert = self.sliders.get("dessert")
+        pooped = self.pooped_var.get()
+        poop_count = int(self.poop_count_spinbox.get()) if pooped else 0
+        sleep_duration = self.sleep_combobox.get()
+        comments = self.comments_text.get("1.0", tk.END).strip()
+
+        # Convert slider values (round to nearest int)
+        starter_val = int(round(starter.get())) if starter else None
+        main_val = int(round(main.get())) if main else None
+        dessert_val = int(round(dessert.get())) if dessert else None
+
+
+        print("=== DEBUG: UI values being saved ===")
+        print("Starter:", starter_val)
+        print("Main:", main_val)
+        print("Dessert:", dessert_val)
+        print("Pooped:", pooped)
+        print("Poop Count:", poop_count)
+        print("Sleep Duration:", repr(sleep_duration))
+        print("Comments:", repr(comments))
+        # Check if entry exists
+        cursor.execute('''
+            SELECT id FROM child_day_info WHERE child_id = ? AND date = ?
+        ''', (child_id, selected_date))
+        existing = cursor.fetchone()
+
+        if existing:
+            print("Updating existing record:", existing)
+            # Update existing record
+            cursor.execute('''
+                UPDATE child_day_info
+                SET starter = ?, main = ?, dessert = ?, pooped = ?, poop_count = ?, 
+                    sleep_duration = ?, comments = ?
+                WHERE child_id = ? AND date = ?
+            ''', (
+                starter_val, main_val, dessert_val, pooped, poop_count,
+                sleep_duration, comments, child_id, selected_date
+            ))
+            print("Rows updated:", conn.total_changes)
+        else:
+            # Insert new record
+            cursor.execute('''
+                INSERT INTO child_day_info 
+                (child_id, date, starter, main, dessert, pooped, poop_count, sleep_duration, comments)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                child_id, selected_date, starter_val, main_val, dessert_val,
+                pooped, poop_count, sleep_duration, comments
+            ))
+
+        conn.commit()
+    print("Day info saved/updated successfully.")
 class ChildDayInfoPage(tk.Toplevel):
     def __init__(self, parent, child_id, selected_date):
         super().__init__(parent)
@@ -131,7 +192,7 @@ class ChildDayInfoPage(tk.Toplevel):
             row_counter += 1
 
             # Save Button
-            self.save_button = tk.Button(main_frame, text="Save", command=self.save_day_info)
+            self.save_button = tk.Button(main_frame, text="Update", command=lambda: save_day_info(self))
             self.save_button.grid(row=row_counter, column=0, columnspan=2, pady=20)
 
 
@@ -162,17 +223,3 @@ class ChildDayInfoPage(tk.Toplevel):
             self.poop_count_spinbox.config(state='disabled')
             self.poop_count_spinbox.delete(0, 'end')
             self.poop_count_spinbox.insert(0, '0')
-
-    def save_day_info(self):
-        # Placeholder for saving logic
-        data = {
-            "child_id": self.child_id,
-            "date": self.selected_date,
-            "ate_well": self.eating_scale.get(),
-            "pooped": self.pooped_var.get(),
-            "poop_count": int(self.poop_count_spinbox.get()) if self.pooped_var.get() else 0,
-            "sleep_duration": self.sleep_entry.get(),
-            "comments": self.comments_text.get("1.0", tk.END).strip()
-        }
-        print("Saved data:", data)
-        # Insert data into your database or process as needed

@@ -124,7 +124,6 @@ def create_tables():
             )
             ''')
 
-
             cursor.execute(''' 
             CREATE TABLE IF NOT EXISTS menus (
                 menu_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -137,6 +136,23 @@ def create_tables():
                            
                 UNIQUE(date, menu_id)
             )
+            ''')
+
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS child_day_info (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                child_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                starter INTEGER,
+                main INTEGER,
+                dessert INTEGER,
+                pooped BOOLEAN,
+                poop_count INTEGER DEFAULT 0,
+                sleep_duration TEXT,
+                comments TEXT,
+                FOREIGN KEY (child_id) REFERENCES children(id),
+                UNIQUE(child_id, date)
+            )       
             ''')
 
             # Commit the changes and leave the connection open for further operations
