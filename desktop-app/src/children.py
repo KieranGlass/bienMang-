@@ -164,9 +164,10 @@ class Children(tk.Toplevel):
         self.title("Current Pupils")
         self.geometry("1400x900")
         self.configure(bg="#d9f1fb")
-        self.deiconify()
         self.lift()
-        self.create_children_window()      
+        self.create_children_window()
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)  
 
     def create_children_window(self):
 
@@ -1094,6 +1095,9 @@ class Children(tk.Toplevel):
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save child data: {str(e)}")
 
+    def on_close(self):
+        self.destroy()
+        self.dashboard.deiconify()
 
 if __name__ == "__main__":
     app = Children()

@@ -214,41 +214,31 @@ class Dashboard(tk.Tk):
         print("Showing children")
 
         self.withdraw()
-
-        children_window = Children(self)  # Initialize the Children window class
-        children_window.mainloop()  # Start the Tkinter event loop for the new window
+        children_window = Children(self)
            
     def show_registers(self):
         print("Showing registers")
 
         self.withdraw()
-        
-        registers_window = Registers(self)  
-        registers_window.mainloop() 
+        registers_window = Registers(self)
             
     def show_menus(self):
         print("Showing menus")
 
         self.withdraw()
-        
-        menus_window = Menus(self)  
-        menus_window.mainloop() 
+        menus_window = Menus(self)
             
     def show_reports(self):
         print("Showing reports")
 
         self.withdraw()
-        
-        reports_window = Reports(self)  
-        reports_window.mainloop() 
+        reports_window = Reports(self) 
             
     def show_settings(self):
         print("Showing settings")
 
         self.withdraw()
-        
-        settings_window = Setting(self)  
-        settings_window.mainloop() 
+        settings_window = Setting(self) 
 
     def log_out(self):
         return print("Log Out")  

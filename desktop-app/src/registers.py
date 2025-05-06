@@ -71,10 +71,11 @@ class Registers(tk.Toplevel):
         print("Initializing Registers...")
         self.title("Registers")
         self.geometry("1400x900")
-        self.deiconify()
         self.lift()
         self.create_registers_window()
-        self.default_register_for_day()   
+        self.default_register_for_day()
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def create_registers_window(self):
         # Set up the grid layout with three columns
@@ -503,9 +504,12 @@ class Registers(tk.Toplevel):
         
         self.destroy()
         
-        # Reopen the Dashboard window
         self.dashboard.deiconify()
         self.dashboard.lift()
+
+    def on_close(self):
+        self.destroy()
+        self.dashboard.deiconify()
 
 if __name__ == "__main__":
     app = Registers()

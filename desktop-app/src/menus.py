@@ -54,13 +54,14 @@ class Menus(tk.Toplevel):
         print("Initializing Menus...")
         self.title("Current Pupils")
         self.geometry("1400x900")
-        self.deiconify()
         self.lift()
         self.create_menus_window()
 
         today = datetime.today()
         self.calendar.selection_set(today)
         self.display_menu_for_day(today)
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
         
 
     def create_menus_window(self):
@@ -284,6 +285,10 @@ class Menus(tk.Toplevel):
 
         # Call this function every 1000 milliseconds (1 second)
         self.after(1000, self.update_clock)
+
+    def on_close(self):
+        self.destroy()
+        self.dashboard.deiconify()
 
 if __name__ == "__main__":
     app = Menus()
