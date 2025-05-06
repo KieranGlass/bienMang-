@@ -403,8 +403,39 @@ class Registers(tk.Toplevel):
             self.display_children_for_day(date)
             adjustment_window.destroy()
 
-        save_button = ttk.Button(container, text="Save", command=validate_and_save)
-        save_button.grid(row=5, column=0, pady=20, sticky="n")
+        def cancel_adjust():
+            adjustment_window.destroy()
+        
+        button_frame = ttk.Frame(container)
+        button_frame.grid(row=5, column=0, pady=20, sticky="n")
+
+        cancel_button_style = ttk.Style()
+        cancel_button_style.configure(
+            "Cancel.TButton",
+            background="#f4c2c2",  # Light pink
+            foreground="black",
+            borderwidth=1
+        )
+        cancel_button_style.map("Cancel.TButton",
+            background=[("active", "#e89cae")]  # Slightly darker pink on hover
+        )
+
+        cancel_button = ttk.Button(button_frame, text="Cancel", style="Cancel.TButton", command=cancel_adjust)
+        cancel_button.grid(row=0, column=0, padx=(0, 10))
+
+        save_button_style = ttk.Style()
+        save_button_style.configure(
+            "Save.TButton",
+            background="#b6e7a6",  # Light green
+            foreground="black",
+            borderwidth=1
+        )
+        save_button_style.map("Save.TButton",
+            background=[("active", "#9bd18a")]  # Slightly darker green on hover
+        )
+
+        save_button = ttk.Button(button_frame, text="Save", style="Save.TButton", command=validate_and_save)
+        save_button.grid(row=0, column=1)
 
     def generate_time_slots(self, start_time="07:30", end_time="18:00", interval=15):
 
