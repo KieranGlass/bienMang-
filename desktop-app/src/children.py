@@ -3,10 +3,9 @@ import re
 from contextlib import closing
 
 import tkinter as tk
-from tkinter import ttk
-from tkinter import simpledialog
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from datetime import datetime, timedelta
@@ -18,11 +17,6 @@ from styles import apply_styles
 TODO:
 - Design elements and buttons to pop and look nicer 
 - address how page looks when there are no entries
-- responsiveness
-- Global sidebar
-- implement email and other validations when editing
-- Consider using `matplotlib.pyplot.close()`.       
-desktop-1  |   fig, ax = plt.subplots(figsize=(6, 4))
 '''
 
 def get_db_connection():
@@ -553,65 +547,56 @@ class Children(tk.Toplevel):
 
     def create_schedule_chart(self, child_name, schedule):
         """Create and display the bar chart for the selected child's schedule."""
-        # Clear the previous chart if there is one
         for widget in self.chart_frame.winfo_children():
             widget.destroy()
 
-        # Set up the figure and axis for the chart
         fig, ax = plt.subplots(figsize=(6, 4))
 
-        # Days of the week
         days_of_week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+        colors = ['lightcoral'] * 5
 
-        # Colors for each day
-        colors = ['lightcoral', 'lightcoral', 'lightcoral', 'lightcoral', 'lightcoral']
+        start_time_base = datetime.strptime("07:30", "%H:%M")
+        end_time_base = datetime.strptime("18:00", "%H:%M")
 
-         # Time range (7:30 AM to 6:00 PM)
-        start_time = datetime.strptime("07:30", "%H:%M")
-        end_time = datetime.strptime("18:00", "%H:%M")
-
-        # Create the x-axis with 30-minute intervals
-        time_slots = [start_time + timedelta(minutes=30 * i) for i in range(int((end_time - start_time).seconds / 60 / 30) + 1)]
+        time_slots = [start_time_base + timedelta(minutes=30 * i)
+                  for i in range(int((end_time_base - start_time_base).seconds / 60 / 30) + 1)]
         time_labels = [t.strftime("%H:%M") for t in time_slots]
         time_ticks = [t.hour + t.minute / 60 for t in time_slots]
 
-        # Loop through each day and plot the schedule for the selected child
         for i, day in enumerate(days_of_week):
-            if day in schedule:
-                start_time, end_time = schedule[day]
+            day_schedule = schedule.get(day)
 
-                 # Skip if schedule data is 'N/A' or None
-                if not start_time or not end_time or start_time == 'N/A' or end_time == 'N/A':
-                    start = datetime.strptime("07:30", "%H:%M")
-                    ax.barh(day, 0, color='lightgrey', left=start.hour + start.minute / 60, height=0.6)  # Empty bar
-                    continue  # Skip the current day if no valid data
-                
-                # Convert start and end times to datetime objects
-                start = datetime.strptime(start_time, "%H:%M")
-                end = datetime.strptime(end_time, "%H:%M")
+            if (
+                not day_schedule or
+                not isinstance(day_schedule, tuple) or
+                len(day_schedule) != 2 or
+                day_schedule[0] in [None, "N/A"] or
+                day_schedule[1] in [None, "N/A"]
+            ):
+                empty_start = datetime.strptime("07:30", "%H:%M")
+                ax.barh(day, 0, color='lightgrey', left=empty_start.hour + empty_start.minute / 60, height=0.6)
+                continue
 
-                # Calculate the duration in hours
-                duration = (end - start).seconds / 3600  # Convert seconds to hours
-                
-                # Plot the bar for the day
+            # Only gets here if data is valid
+            start_str, end_str = day_schedule
+            try:
+                start = datetime.strptime(start_str, "%H:%M")
+                end = datetime.strptime(end_str, "%H:%M")
+                duration = (end - start).seconds / 3600
                 ax.barh(day, duration, color=colors[i], left=start.hour + start.minute / 60, height=0.6)
+            except ValueError:
+                # In case parsing still fails
+                empty_start = datetime.strptime("07:30", "%H:%M")
+                ax.barh(day, 0, color='lightgrey', left=empty_start.hour + empty_start.minute / 60, height=0.6)
 
-        # Set title and labels
         ax.set_title(f"General Weekly Schedule for {child_name}")
         ax.set_xlabel("Time (Hours)")
         ax.set_ylabel("Days of the Week")
-
-        # Set x-axis ticks for 30-minute intervals between 7:30 and 18:00
         ax.set_xticks(time_ticks)
         ax.set_xticklabels(time_labels, rotation=45, ha="right")
-
-        # Add gridlines and make it visually more readable
         ax.grid(True, which='both', axis='x', linestyle='--', alpha=0.7)
-
-        # Adjust layout to make sure everything fits nicely
         fig.tight_layout()
 
-        # Add the chart to the Tkinter window
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
@@ -769,49 +754,69 @@ class Children(tk.Toplevel):
             return
 
         child_id = self.tree.item(selected_item[0])['values'][0]
-
         child_data = get_schedule(child_id)
 
         if not child_data:
             messagebox.showerror("Error", "No child found with this ID.")
             return
-        
-        # Create the root window
-        root = tk.Tk()
+
+        root = tk.Toplevel()
         root.title("Edit Child Schedule Info")
-        
-        # Create labels and entry widgets
-        labels = ["Monday Arrival", "Monday Finish", "Tuesday Arrival", "Tuesday Finish", 
-                "Wednesday Arrival", "Wednesday Finish", "Thursday Arrival", "Thursday Finish", 
-                "Friday Arrival", "Friday Finish"]
-        
+        root.grab_set()
+
+        labels = [
+            "Monday Start", "Monday Finish",
+            "Tuesday Start", "Tuesday Finish",
+            "Wednesday Start", "Wednesday Finish",
+            "Thursday Start", "Thursday Finish",
+            "Friday Start", "Friday Finish"
+        ]
+
         entries = []
-        time_slots = self.generate_time_slots("7:30", "18:00", 15)
-        
+        time_slots = ["N/A"] + self.generate_time_slots("7:30", "18:00", 15)
+
         for idx, label in enumerate(labels):
             tk.Label(root, text=label).grid(row=idx, column=0, padx=10, pady=5)
-            entry = ttk.Combobox(root, values=time_slots, font=("Arial", 12))
+            entry = ttk.Combobox(root, values=time_slots, font=("Arial", 12), state="readonly", width=15)
             entry.grid(row=idx, column=1, padx=10, pady=5)
             entries.append(entry)
-        
-        # Pre-fill the fields with existing data
+
         for idx, entry in enumerate(entries):
-            value = child_data[idx] if child_data[idx] is not None else ""
-            entry.insert(0, value)
+            value = child_data[idx] if child_data[idx] is not None else "N/A"
+            entry.set(value)
 
         def submit_edits():
-            # Get the edited data from the fields
+            
             edited_data = [entry.get() for entry in entries]
-    
-            # Convert empty strings to None before saving to the database
-            edited_data = [None if value == "" else value for value in edited_data]
-    
-            # Save the data to the DB
+
+            time_format = "%H:%M"
+            weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+            for i, day in enumerate(weekdays):
+                start = edited_data[i * 2]
+                end = edited_data[i * 2 + 1]
+
+                if (start == "N/A" and end != "N/A") or (start != "N/A" and end == "N/A"):
+                    messagebox.showerror("Invalid Input", f"{day}: Both times must be set or both must be N/A.")
+                    return
+
+                if start != "N/A" and end != "N/A":
+                    try:
+                        start_time = datetime.strptime(start, time_format)
+                        end_time = datetime.strptime(end, time_format)
+                        if start_time >= end_time:
+                            messagebox.showerror("Invalid Time", f"{day}: Start time must be before end time.")
+                            return
+                    except ValueError:
+                        messagebox.showerror("Invalid Format", f"{day}: Time must be in HH:MM format.")
+                        return
+
+            edited_data = [None if val == "" else val for val in edited_data]
+
             save_edited_child_schedule(child_id, *edited_data)
             self.load_children()
             root.destroy()
 
-        # Add a submit button
         submit_button = tk.Button(root, text="Save Changes", command=submit_edits)
         submit_button.grid(row=len(labels), column=0, columnspan=2, pady=10)
 
@@ -1008,6 +1013,9 @@ class Children(tk.Toplevel):
     def finish_process(self):
         """Persist the data to the database."""
         # Get all the data from the forms (child info and schedule info)
+
+
+
         first_name = self.first_name_entry.get()
         middle_name = self.middle_name_entry.get()
         last_name = self.last_name_entry.get()
@@ -1020,6 +1028,27 @@ class Children(tk.Toplevel):
         guardian_two_fname = self.guardian_two_fname_entry.get()
         guardian_two_lname = self.guardian_two_lname_entry.get()
         guardian_two_contact_no = self.guardian_two_contact_no_entry.get()
+
+        # Validate schedule for all days before saving
+        time_format = "%H:%M"
+        for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]:
+            start = self.arrival_entries[day].get()
+            end = self.finish_entries[day].get()
+
+            if (start == "N/A" and end != "N/A") or (start != "N/A" and end == "N/A"):
+                messagebox.showerror("Invalid Input", f"{day}: Both times must be set or both must be N/A.")
+                return
+
+            if start != "N/A" and end != "N/A":
+                try:
+                    start_time = datetime.strptime(start, time_format)
+                    end_time = datetime.strptime(end, time_format)
+                    if start_time >= end_time:
+                        messagebox.showerror("Invalid Time", f"{day}: Start time must be before end time.")
+                        return
+                except ValueError:
+                    messagebox.showerror("Invalid Format", f"{day}: Time must be in HH:MM format.")
+                    return
 
         # Get all the data from the schedule info form
         monday_arrival = self.arrival_entries["Monday"].get()
