@@ -349,6 +349,8 @@ class Registers(tk.Toplevel):
         adjustment_window.geometry("400x300")
         adjustment_window.resizable(True, True)
 
+        adjustment_window.grab_set()
+
         adjustment_window.grid_rowconfigure(0, weight=1)
         adjustment_window.grid_columnconfigure(0, weight=1)
 
@@ -378,7 +380,11 @@ class Registers(tk.Toplevel):
         save_button = ttk.Button(
             container,
             text="Save",
-            command=lambda: save_adjustment(date_str, child_id, start_combo, end_combo)
+            command=lambda: (
+                save_adjustment(date_str, child_id, start_combo, end_combo),
+                self.display_children_for_day(date),
+                adjustment_window.destroy()
+            )
         )
         save_button.grid(row=5, column=0, pady=20, sticky="n")
 
