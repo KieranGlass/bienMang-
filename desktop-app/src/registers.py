@@ -214,7 +214,6 @@ class Registers(tk.Toplevel):
         # Fetch children data and their registers for the selected date
         self.display_children_for_day(selected_date)
         
-
     def display_children_for_day(self, selected_date):
         """Display children and their register information."""
         # Clear previous contents
@@ -292,7 +291,14 @@ class Registers(tk.Toplevel):
             adjust_button_style.map("LightBlue.TButton",
                 background=[("active", "#87ceeb")]) 
 
-            adjust_button = ttk.Button(self.scrollable_register_frame, text="Adjust", style="LightBlue.TButton", command=lambda child_id=child_id, date=selected_date: self.adjust_schedule(child_id, date))
+            adjust_button = ttk.Button(
+                self.scrollable_register_frame,
+                text="Adjust",
+                style="LightBlue.TButton",
+                # Saves the pupil varaibles for each iteration, for passing info to adjust schedule
+                command=lambda id=child_id, date=selected_date, start=adjusted_start, end=adjusted_end,
+                name=first_name + "" + last_name: self.adjust_schedule(id, date, start, end, name)
+            )
             adjust_button.grid(row=i, column=3, padx=10, sticky="ew")
 
             # Increment the row index for the next child
@@ -332,27 +338,65 @@ class Registers(tk.Toplevel):
         self.day_label = tk.Label(self.scrollable_register_frame, text=formatted_date, font=("Arial", 14))
         self.day_label.grid(row=0, column=0, columnspan=2, pady=10, padx=0)
 
-    def adjust_schedule(self, child_id, date):
+    def adjust_schedule(self, child_id, date, current_start, current_end, name):
         """Adjust the schedule for a child."""
         date_str = date.strftime("%Y-%m-%d")
+        time_options = self.generate_time_slots()
+        print(f"{current_start} // {current_end}")
 
-        # Create the adjustment window
         adjustment_window = tk.Toplevel(self)
-        adjustment_window.title("Adjust Schedule")
+        adjustment_window.title(f"Adjust Schedule for {name}")
+        adjustment_window.geometry("400x300")
+        adjustment_window.resizable(True, True)
 
-        start_label = tk.Label(adjustment_window, text="Start Time:")
-        start_label.pack(pady=5)
-        start_entry = tk.Entry(adjustment_window)
-        start_entry.pack(pady=5)
+        adjustment_window.grid_rowconfigure(0, weight=1)
+        adjustment_window.grid_columnconfigure(0, weight=1)
 
-        end_label = tk.Label(adjustment_window, text="End Time:")
-        end_label.pack(pady=5)
-        end_entry = tk.Entry(adjustment_window)
-        end_entry.pack(pady=5)
+        container = ttk.Frame(adjustment_window, padding=20)
+        container.grid(row=0, column=0, sticky="nsew")
 
-        save_button = ttk.Button(adjustment_window, text="Save", 
-                                 command=lambda: save_adjustment(date_str, child_id, start_entry, end_entry))
-        save_button.pack(pady=10)
+        for r in range(7):
+            container.grid_rowconfigure(r, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        start_label = ttk.Label(container, text="Start Time:", anchor="center", justify="center")
+        start_label.grid(row=0, column=0, pady=(20, 5), sticky="n")
+
+        start_combo = ttk.Combobox(container, values=time_options, state="readonly", width=20)
+        start_combo.set(current_start if current_start in time_options else "N/A")
+        start_combo.grid(row=1, column=0, pady=(0, 10), sticky="n")
+
+        end_label = ttk.Label(container, text="End Time:", anchor="center", justify="center")
+        end_label.grid(row=2, column=0, pady=(10, 5), sticky="n")
+
+        end_combo = ttk.Combobox(container, values=time_options, state="readonly", width=20)
+        end_combo.set(current_end if current_end in time_options else "N/A")
+        end_combo.grid(row=3, column=0, pady=(0, 10), sticky="n")
+
+        container.grid_rowconfigure(4, minsize=10)
+
+        save_button = ttk.Button(
+            container,
+            text="Save",
+            command=lambda: save_adjustment(date_str, child_id, start_combo, end_combo)
+        )
+        save_button.grid(row=5, column=0, pady=20, sticky="n")
+
+    def generate_time_slots(self, start_time="07:30", end_time="18:00", interval=15):
+
+        # Create a list to store time slots
+        time_slots = ["N/A"]
+    
+        # Parse the start and end times
+        start = datetime.strptime(start_time, "%H:%M")
+        end = datetime.strptime(end_time, "%H:%M")
+    
+        # Generate time slots from start_time to end_time with the specified interval
+        while start <= end:
+            time_slots.append(start.strftime("%H:%M"))
+            start += timedelta(minutes=interval)
+    
+        return time_slots
 
     def highlight_weekdays(self, event=None):
         """ Highlight weekdays (Mon-Fri) for the currently viewed month """
