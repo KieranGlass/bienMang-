@@ -87,7 +87,7 @@ class Registers(tk.Toplevel):
         
         # ===== Scrollable Register Container =====
         self.register_container = ttk.Frame(self)
-        self.register_container.grid(row=0, column=1, sticky="nsew", padx=(0, 10), pady=(10, 0))
+        self.register_container.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=(10, 0))
 
         # Canvas for scrollable content
         self.register_canvas = tk.Canvas(self.register_container)
@@ -122,14 +122,11 @@ class Registers(tk.Toplevel):
         self.register_canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
 
-        # Make sure everything expands properly
         self.register_container.grid_propagate(True)        
 
-        # Date selection and calendar in column 3
         self.calendar_frame = ttk.Frame(self)
         self.calendar_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=10)
 
-        # Ensure the calendar_frame also expands
         self.calendar_frame.grid_columnconfigure(0, weight=1)
         self.calendar_frame.grid_rowconfigure(0, weight=1)
 
@@ -141,7 +138,20 @@ class Registers(tk.Toplevel):
 
         self.highlight_weekdays()
 
-        select_button = ttk.Button(self.calendar_frame, text="Select", command=self.show_register_for_day)
+        select_button_style = ttk.Style()
+        select_button_style.configure(
+            "Select.TButton",
+            background="#add8e6",
+            foreground="black",
+            borderwidth=1,
+            focusthickness=3,
+            focuscolor='none',
+        )
+        select_button_style.map("Select.TButton",
+                background=[("active", "#87ceeb")])
+
+
+        select_button = ttk.Button(self.calendar_frame, text="Select", style="Select.TButton", command=self.show_register_for_day)
         select_button.grid(pady=10)
 
         self.create_clock(self.sidebar_frame)
@@ -166,18 +176,18 @@ class Registers(tk.Toplevel):
         tab_button = ttk.Button(frame, text=text, command=command)
         tab_button.grid(row=row, column=0, padx=0, pady=5, sticky="w")
 
-        style = ttk.Style()
-        style.configure(
+        tab_button_style = ttk.Style()
+        tab_button_style.configure(
             "Custom.TButton",
-            background="#1e3a5f",  # Darkish blue
-            foreground="white",     # White text
+            background="#1e3a5f",
+            foreground="white",
             font=("Arial", 12, "bold"),
-            relief="raised",        # Raised effect (simulates depth)
-            padding=(10, 5),        # Padding for more space inside
-            borderwidth=2,          # Border width for depth
-            anchor="center",  
+            relief="raised",
+            padding=(10, 5),
+            borderwidth=2,
+            anchor="center",
         )
-        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
+        tab_button_style.map("Custom.TButton", background=[("active", "#2c4b7f")])
         tab_button.configure(style="Custom.TButton")
 
     def default_register_for_day(self):
@@ -235,7 +245,7 @@ class Registers(tk.Toplevel):
         end_header = tk.Label(self.scrollable_register_frame, text="End Time", font=("Arial", 12, "bold"))
         end_header.grid(row=1, column=2, padx=10, sticky="ew")
 
-        adjust_header = tk.Label(self.scrollable_register_frame, text="Adjust", font=("Arial", 12, "bold"))
+        adjust_header = tk.Label(self.scrollable_register_frame, text="")
         adjust_header.grid(row=1, column=3, padx=10, sticky="ew")
 
         # Loop through the children and display their schedule
@@ -270,8 +280,19 @@ class Registers(tk.Toplevel):
             child_end_label = tk.Label(self.scrollable_register_frame, text=adjusted_end, bg="#f4f4f4", relief="solid", padx=5)
             child_end_label.grid(row=i, column=2, padx=10, sticky="ew")
 
-            # Button to adjust the schedule for that day (always in the same column)
-            adjust_button = ttk.Button(self.scrollable_register_frame, text="Adjust", command=lambda child_id=child_id, date=selected_date: self.adjust_schedule(child_id, date))
+            adjust_button_style = ttk.Style()
+
+            adjust_button_style.configure("LightBlue.TButton",
+                background="#add8e6",
+                foreground="black",
+                borderwidth=1,
+                focusthickness=3,
+                focuscolor='none')
+            
+            adjust_button_style.map("LightBlue.TButton",
+                background=[("active", "#87ceeb")]) 
+
+            adjust_button = ttk.Button(self.scrollable_register_frame, text="Adjust", style="LightBlue.TButton", command=lambda child_id=child_id, date=selected_date: self.adjust_schedule(child_id, date))
             adjust_button.grid(row=i, column=3, padx=10, sticky="ew")
 
             # Increment the row index for the next child
