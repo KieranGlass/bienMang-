@@ -2,7 +2,7 @@ import sqlite3
 from contextlib import closing
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkcalendar import Calendar
 import time
 from datetime import datetime, timedelta
@@ -377,15 +377,32 @@ class Registers(tk.Toplevel):
 
         container.grid_rowconfigure(4, minsize=10)
 
-        save_button = ttk.Button(
-            container,
-            text="Save",
-            command=lambda: (
-                save_adjustment(date_str, child_id, start_combo, end_combo),
-                self.display_children_for_day(date),
-                adjustment_window.destroy()
-            )
-        )
+        def validate_and_save():
+            start = start_combo.get()
+            end = end_combo.get()
+
+            if (start == "N/A" and end != "N/A") or (start != "N/A" and end == "N/A"):
+                messagebox.showerror("Invalid Input", "Both times must be set or both must be N/A.")
+                return
+
+            if start != "N/A" and end != "N/A":
+                
+                fmt = "%H:%M"
+                try:
+                    start_time = datetime.strptime(start, fmt)
+                    end_time = datetime.strptime(end, fmt)
+                    if start_time >= end_time:
+                        messagebox.showerror("Invalid Time", "Start time must be before end time.")
+                        return
+                except ValueError:
+                    messagebox.showerror("Error", "Invalid time format.")
+                    return
+
+            save_adjustment(date_str, child_id, start_combo, end_combo)
+            self.display_children_for_day(date)
+            adjustment_window.destroy()
+
+        save_button = ttk.Button(container, text="Save", command=validate_and_save)
         save_button.grid(row=5, column=0, pady=20, sticky="n")
 
     def generate_time_slots(self, start_time="07:30", end_time="18:00", interval=15):

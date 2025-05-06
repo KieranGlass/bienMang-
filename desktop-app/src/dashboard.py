@@ -199,6 +199,7 @@ class Dashboard(tk.Tk):
         # Pass the selected date to DayInfoPage
 
         day_info_window = DayInfoPage(self, selected_date_str)
+        day_info_window.grab_set()
         day_info_window.mainloop()
 
     def show_today(self):
