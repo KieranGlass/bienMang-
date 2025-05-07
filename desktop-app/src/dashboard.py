@@ -5,6 +5,8 @@ from tkcalendar import Calendar
 import time
 from datetime import datetime, timedelta
 
+from utils import calendar_utils
+
 from login import LoginWindow
 from children import Children
 from menus import Menus
@@ -53,9 +55,6 @@ class Dashboard(tk.Tk):
         # Create clock label
         self.create_clock(self.sidebar_frame)
 
-    
-       
-
     def create_global_sidebar(self):
         """ Create the sidebar with tabs """
         # Sidebar container (frame)
@@ -99,74 +98,26 @@ class Dashboard(tk.Tk):
         parent.grid_rowconfigure(0, weight=1)  # Make the row with the calendar expand
         parent.grid_columnconfigure(0, weight=1)
 
-        # Bind the calendar's day selection to a function
-        self.calendar.bind("<<CalendarSelected>>", self.on_day_selected)
+        # Bind the calendar selection event
+        self.calendar.bind(
+            "<<CalendarSelected>>",
+            lambda event: calendar_utils.on_day_selected(
+            self.calendar,
+            self.disabled_weekends,
+            lambda date_str: calendar_utils.open_day_info(self, date_str, DayInfoPage)
+        )
+)
         # Bind the month change event to highlight the weekdays again
-        self.calendar.bind("<<CalendarMonthChanged>>", self.highlight_weekdays)
-
-        self.highlight_weekdays()
-
-    def highlight_weekdays(self, event=None):
-        """ Highlight weekdays (Mon-Fri) for the currently viewed month """
-        print("Month changed!")
-        # Get the first day of the currently displayed month
-        current_month = self.calendar.get_displayed_month()  # This returns a tuple like (year, month)
-        print(f"The month is: {current_month}")
-    
-        # Check if current_month is a tuple and format it into 'YYYY-MM' string
-        if isinstance(current_month, tuple) and len(current_month) == 2:
-            month, year = current_month  # Unpack the tuple
-            # Ensure the month is 2 digits, e.g., '03' for March
-            current_month_str = f"{year:04d}-{month:02d}"  # Format as 'YYYY-MM'
-        else:
-            # Handle error if the current_month is not a tuple or has invalid data
-            raise ValueError("Expected current_month to be a tuple with (year, month)")
-    
-        # Get the first day of the current month (ensure the date string is 'YYYY-MM-01')
-        first_day = datetime.strptime(current_month_str + "-01", "%Y-%m-%d")  # Creating a datetime object for the first day
-        print(f"First day is: {first_day.strftime('%Y-%m-%d')}")
-        
-
-        # Get all the days in the current month
-        total_days_in_month = self._get_days_in_month(first_day)
-
-        # Clear any existing events before applying new ones
-        self.calendar.calevent_remove("weekday")
-        self.calendar.calevent_remove("weekend")
- 
-        # Try and delete existing tags so calendar doesnt keep previous months coloring
-        try:
-            self.calendar.tag_delete("weekday")
-            self.calendar.tag_delete("weekend")
-            print("Deleted exisiting tags")
-        except:
-            print("No tags currently present")
-
-        self.disabled_weekends = set()  # Track disabled weekend dates
-
-        for day in total_days_in_month:
-
-            day_date = day.date()
-
-            if day.weekday() < 5:  # Monday to Friday
-                self.calendar.calevent_create(day_date, f"{day.day}", "weekday")  
-                self.calendar.tag_config("weekday", background="lightgreen", foreground="black") 
-            else:  # Weekend days (Saturday and Sunday)
-                self.calendar.calevent_create(day_date, f"{day.day}", "weekend")
-                self.calendar.tag_config("weekend", background="pink", foreground="black")
-                self.disabled_weekends.add(day_date)
-
-        self.current_hovered_day = None
-
-    def _get_days_in_month(self, date):
-        """ Get all the days in the month for the given date """
-        # Get the last day of the current month
-        next_month = date.replace(day=28) + timedelta(days=4)  # Go to the next month
-        last_day_of_month = next_month - timedelta(days=next_month.day)  # Get the last day of the month
-
-        # Generate all days in the month
-        days_in_month = [date.replace(day=d) for d in range(1, last_day_of_month.day + 1)]
-        return days_in_month
+        self.calendar.bind(
+            "<<CalendarMonthChanged>>",
+            lambda event: calendar_utils.on_month_change(
+            self.calendar,
+            self.calendar.get_displayed_month,
+            lambda val: setattr(self, "disabled_weekends", val)
+        )
+)
+        calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
+        self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 
     def create_clock(self, parent):
         """ Create and display a label that shows real-time clock """
@@ -183,24 +134,6 @@ class Dashboard(tk.Tk):
 
         # Call this function every 1000 milliseconds (1 second)
         self.after(1000, self.update_clock)
-
-    def on_day_selected(self, event):
-        """ Handle when a day is selected on the calendar """
-        selected_date_str = self.calendar.get_date()  # Get the selected date in 'yyyy-mm-dd' format
-        selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
-
-        if selected_date in self.disabled_weekends:
-            print(f"Weekend selected: {selected_date}. Selection disabled.")
-            self.calendar.selection_clear()  # Deselect the date
-            return  # Stop here, don’t open DayInfoPage
-
-        print("Opening day info page for " + selected_date_str)
-        # Open a new window (DayInfoPage) showing details for the selected date
-        # Pass the selected date to DayInfoPage
-
-        day_info_window = DayInfoPage(self, selected_date_str)
-        day_info_window.grab_set()
-        day_info_window.mainloop()
 
     def show_today(self):
         print("Showing today")
