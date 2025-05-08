@@ -206,34 +206,6 @@ def get_all_children():
     return children
 
 
-# Inserting a new child record
-def add_child(first_name, last_name, birth_date, admission_date, notes):
-    """
-    Add a child to the database.
-    """
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('''
-        INSERT INTO children (first_name, last_name, birth_date, admission_date, notes)
-        VALUES (?, ?, ?, ?, ?)
-        ''', (first_name, last_name, birth_date, admission_date, notes))
-        conn.commit()
-        conn.close()
-
-
-# Function to print database contents for testing
-def print_all_users():
-    """
-    This function will print all the users, for testing purposes.
-    """
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT * FROM users")
-        users = cursor.fetchall()
-        for user in users:
-            print(dict(user))
-
-
 if __name__ == '__main__':
-    create_tables()  # Set up tables on first run (this can also be done in your Docker entrypoint)
+    create_tables()  # Set up tables on first run
     print("Database setup completed.")

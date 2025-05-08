@@ -5,14 +5,13 @@ from tkcalendar import Calendar
 import time
 from datetime import datetime, timedelta
 
-from utils import calendar_utils
+from utils import calendar_utils, clock_utils, navigation_utils
 
 from login import LoginWindow
 from children import Children
 from menus import Menus
 from reports import Reports
 from registers import Registers
-from today import Today
 from admin import Setting
 from day_info import DayInfoPage
 
@@ -20,27 +19,30 @@ from day_info import DayInfoPage
 # TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
 
  
-class Dashboard(tk.Tk):
+class Dashboard(tk.Toplevel):
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent, root_app):
+        super().__init__(parent)
         print("Initializing MainWindow...")
+        self.root_app = root_app
+        self.parent = parent
         self.title("Bien Manger")
         self.geometry("1400x900")
         self.configure(bg="#d9f1fb")
-        self.deiconify()
         self.attributes('-topmost', True)
         self.attributes('-topmost', False)
         self.lift()
 
-        self.create_dashboard()      
+        self.create_dashboard()
+
+        self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
     
 
     def create_dashboard(self):
         print(f"Current working directory: {os.getcwd()}")
         print(f"Resources path: {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources')}")
 
-        self.create_global_sidebar()
+        self.sidebar_frame = navigation_utils.create_global_sidebar(self)
     
         # Create main frame for dashboard
         dashboard_frame = ttk.Frame(self)
@@ -53,41 +55,7 @@ class Dashboard(tk.Tk):
         # Create calendar widget
         self.create_calendar(dashboard_frame)
         # Create clock label
-        self.create_clock(self.sidebar_frame)
-
-    def create_global_sidebar(self):
-        """ Create the sidebar with tabs """
-        # Sidebar container (frame)
-        self.sidebar_frame = ttk.Frame(self, relief="raised")
-        self.sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsw")
-
-        # Tab buttons
-        self.create_sidebar_tab(self.sidebar_frame, "Children", self.show_children, 0)
-        self.create_sidebar_tab(self.sidebar_frame, "Registers", self.show_registers, 1)
-        self.create_sidebar_tab(self.sidebar_frame, "Menus", self.show_menus, 2)
-        self.create_sidebar_tab(self.sidebar_frame, "Reports", self.show_reports, 3)
-        self.create_sidebar_tab(self.sidebar_frame, "Settings", self.show_settings, 4)
-        self.create_sidebar_tab(self.sidebar_frame, "Tab 5", self.show_children, 5)
-        self.create_sidebar_tab(self.sidebar_frame, "Log Out", self.log_out, 6)
-
-    def create_sidebar_tab(self, sidebar_frame, label, command, row):
-        """ Helper function to create a tab (button) in the sidebar """
-        tab_button = ttk.Button(sidebar_frame, text=label, command=command)
-        tab_button.grid(row=row, column=0, padx=10, pady=10, sticky="w")
-
-        style = ttk.Style()
-        style.configure(
-            "Custom.TButton",
-            background="#1e3a5f",  # Darkish blue
-            foreground="white",     # White text
-            font=("Arial", 12, "bold"),
-            relief="raised",        # Raised effect (simulates depth)
-            padding=(10, 5),        # Padding for more space inside
-            borderwidth=2,          # Border width for depth
-            anchor="center",  
-        )
-        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
-        tab_button.configure(style="Custom.TButton")
+        self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
 
     def create_calendar(self, parent):
         """ Create and display the calendar widget """
@@ -119,66 +87,11 @@ class Dashboard(tk.Tk):
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 
-    def create_clock(self, parent):
-        """ Create and display a label that shows real-time clock """
-        self.time_label = tk.Label(parent, font=("Helvetica", 20), bg="#d9f1fb")
-        self.time_label.grid(pady=10, sticky="ns")
-
-        # Update the clock every second
-        self.update_clock()
-
-    def update_clock(self):
-        """ Update the clock to show the current time """
-        current_time = time.strftime("%H:%M")  # Get current time
-        self.time_label.config(text=current_time)  # Update label with current time
-
-        # Call this function every 1000 milliseconds (1 second)
-        self.after(1000, self.update_clock)
-
-    def show_today(self):
-        print("Showing today")
-
-        self.withdraw()
-        
-        today_window = Today(self)  
-        today_window.mainloop()  
-            
-    def show_children(self):
-        print("Showing children")
-
-        self.withdraw()
-        children_window = Children(self)
-           
-    def show_registers(self):
-        print("Showing registers")
-
-        self.withdraw()
-        registers_window = Registers(self)
-            
-    def show_menus(self):
-        print("Showing menus")
-
-        self.withdraw()
-        menus_window = Menus(self)
-            
-    def show_reports(self):
-        print("Showing reports")
-
-        self.withdraw()
-        reports_window = Reports(self) 
-            
-    def show_settings(self):
-        print("Showing settings")
-
-        self.withdraw()
-        settings_window = Setting(self) 
-
-    def log_out(self):
-        return print("Log Out")  
-
 def main():
-    app = LoginWindow()
-    app.mainloop()
+    root = tk.Tk()
+    root.withdraw()
+    login_window = LoginWindow(root)
+    login_window.mainloop()
 
 if __name__ == "__main__":
     main()

@@ -6,13 +6,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 
+from utils import navigation_utils
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from datetime import datetime, timedelta
 
 from PIL import Image, ImageTk
 
-from styles import apply_styles
 '''
 TODO:
 - Design elements and buttons to pop and look nicer 
@@ -157,9 +158,10 @@ def save_edited_child_schedule(id,
 
 class Children(tk.Toplevel):
     
-    def __init__(self, dashboard):
-        super().__init__()
-        self.dashboard = dashboard  # Store the Dashboard instance
+    def __init__(self, parent, root_app):
+        super().__init__(parent)
+        self.root_app = root_app
+        self.parent = parent  # Store the Dashboard instance
         print("Initializing Pupil list...")
         self.title("Current Pupils")
         self.geometry("1400x900")
@@ -167,7 +169,7 @@ class Children(tk.Toplevel):
         self.lift()
         self.create_children_window()
 
-        self.protocol("WM_DELETE_WINDOW", self.on_close)  
+        self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
     def create_children_window(self):
 
@@ -189,7 +191,7 @@ class Children(tk.Toplevel):
         dashboard_frame.grid_columnconfigure(1, weight=2)  
         dashboard_frame.grid_columnconfigure(2, weight=2)
 
-        self.create_global_sidebar()
+        self.sidebar_frame = navigation_utils.create_global_sidebar(self)
 
         self.create_add_new_child_frame()
 
@@ -396,40 +398,6 @@ class Children(tk.Toplevel):
             if attr.endswith('_entry'):
                 getattr(self, attr).delete(0, tk.END)
 
-    def create_global_sidebar(self):
-        """ Create the sidebar with tabs """
-        # Sidebar container (frame)
-        sidebar_frame = ttk.Frame(self, relief="raised")
-        sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsw")
-
-        # Tab buttons
-        self.create_sidebar_tab(sidebar_frame, "Home", self.go_home, 0)
-        self.create_sidebar_tab(sidebar_frame, "Tab 1", self.go_home, 1)
-        self.create_sidebar_tab(sidebar_frame, "Tab 2", self.go_home, 2)
-        self.create_sidebar_tab(sidebar_frame, "Tab 3", self.go_home, 3)
-        self.create_sidebar_tab(sidebar_frame, "Tab 4", self.go_home, 4)
-        self.create_sidebar_tab(sidebar_frame, "Tab 5", self.go_home, 5)
-        self.create_sidebar_tab(sidebar_frame, "Log Out", self.go_home, 6)
-
-    def create_sidebar_tab(self, sidebar_frame, label, command, row):
-        """ Helper function to create a tab (button) in the sidebar """
-        tab_button = ttk.Button(sidebar_frame, text=label, command=command)
-        tab_button.grid(row=row, column=0, padx=10, pady=10, sticky="w")
-
-        style = ttk.Style()
-        style.configure(
-            "Custom.TButton",
-            background="#1e3a5f",  # Darkish blue
-            foreground="white",     # White text
-            font=("Arial", 12, "bold"),
-            relief="raised",        # Raised effect (simulates depth)
-            padding=(10, 5),        # Padding for more space inside
-            borderwidth=2,          # Border width for depth
-            anchor="center",  
-        )
-        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
-        tab_button.configure(style="Custom.TButton")
-
     def create_pupil_list(self):
         # Create a style for Treeview
         style = ttk.Style(self)
@@ -601,14 +569,6 @@ class Children(tk.Toplevel):
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    def go_home(self):
-        
-        self.destroy()
-        
-        # Reopen the Dashboard window
-        self.dashboard.deiconify()
-        self.dashboard.lift()
 
     def load_children(self):
         

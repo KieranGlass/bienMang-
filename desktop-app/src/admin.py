@@ -1,42 +1,30 @@
 import tkinter as tk
 from tkinter import ttk
 
-class Setting(tk.Tk):
+from utils import clock_utils, navigation_utils
+
+class Setting(tk.Toplevel):
     
-    def __init__(self, dashboard):
-        super().__init__()
-        self.dashboard = dashboard  # Store the Dashboard instance
+    def __init__(self, parent, root_app):
+        super().__init__(parent)
+        self.root_app = root_app
+        self.parent = parent  # Store the Dashboard instance
         print("Initializing Settings...")
         self.title("Settings")
         self.geometry("1400x900")
-        self.deiconify()
         self.lift()
         self.create_settings_window()      
-        
-    def create_title_label(self):
-        # Create a title label at the top of the window
-        title_label = tk.Label(self, text="Settings", font=("Helvetica", 24))
-        title_label.pack(pady=20)  # Adds some space above the title
+
+        self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
     def create_settings_window(self):
-        # Add a Home button
-        home_button = ttk.Button(self, text="Home", command=self.go_home)
-        home_button.pack(pady=20) 
-        
-        self.create_title_label()
+
+        self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar (fixed width)
+        self.grid_columnconfigure(1, weight=4, minsize=600)  # Menu list (flexible)
     
-        # Create main frame for dashboard
-        dashboard_frame = ttk.Frame(self)
-        dashboard_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        self.sidebar_frame = navigation_utils.create_global_sidebar(self)
 
-    def go_home(self):
-        
-        self.destroy()
-        
-        # Reopen the Dashboard window
-        self.dashboard.deiconify()
-        self.dashboard.lift()
-
+        self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
 
 
 if __name__ == "__main__":

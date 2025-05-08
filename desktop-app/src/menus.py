@@ -1,14 +1,12 @@
 import sqlite3
 from contextlib import closing
 
-from utils import calendar_utils
-
+from utils import calendar_utils, clock_utils, navigation_utils
 
 import tkinter as tk
 from tkinter import ttk
 from tkcalendar import Calendar
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 DEFAULT_MENUS = {
         "monday": ("Beef and Carrot Puree", "Apple Compote", "Vegetable Soup", "Sautéed Beef and Potatoes", "Natural Yogurt"),
@@ -47,13 +45,12 @@ def update_menu(menu_id, baby_main, baby_dessert, grands_starter, grands_main, g
             (baby_main, baby_dessert, grands_starter, grands_main, grands_dessert, menu_id))
         conn.commit()
 
-
-
 class Menus(tk.Toplevel):
     
-    def __init__(self, dashboard):
-        super().__init__()
-        self.dashboard = dashboard  # Store the Dashboard instance
+    def __init__(self, parent, root_app):
+        super().__init__(parent)
+        self.root_app = root_app
+        self.parent = parent  # Store the Dashboard instance
         print("Initializing Menus...")
         self.title("Current Pupils")
         self.geometry("1400x900")
@@ -64,16 +61,15 @@ class Menus(tk.Toplevel):
         self.calendar.selection_set(today)
         self.display_menu_for_day(today)
 
-        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
         
-
     def create_menus_window(self):
         self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar (fixed width)
         self.grid_columnconfigure(1, weight=4, minsize=600)  # Menu list (flexible)
         self.grid_rowconfigure(1, weight=1)  # Let row 1 (calendar) expand vertically
 
         # Add the sidebar
-        self.create_global_sidebar()
+        self.sidebar_frame = navigation_utils.create_global_sidebar(self)
         
         # Column 2 (Middle): Register list and day title
         self.menus_frame = ttk.Frame(self)
@@ -117,41 +113,7 @@ class Menus(tk.Toplevel):
         select_button = ttk.Button(self.calendar_frame, text="Select", style="Select.TButton", command=self.show_menu_for_day)
         select_button.grid(pady=10)
 
-        self.create_clock(self.sidebar_frame)
-
-    def create_global_sidebar(self):
-        """ Create the sidebar with tabs """
-        # Sidebar container (frame)
-        self.sidebar_frame = ttk.Frame(self, relief="raised")
-        self.sidebar_frame.grid(row=0, column=0, rowspan=1, padx=0, pady=0, sticky="nsw")
-
-        # Tab buttons
-        self.create_sidebar_tab(self.sidebar_frame, "Home", self.go_home, 0)
-        self.create_sidebar_tab(self.sidebar_frame, "Tab 1", self.go_home, 1)
-        self.create_sidebar_tab(self.sidebar_frame, "Tab 2", self.go_home, 2)
-        self.create_sidebar_tab(self.sidebar_frame, "Tab 3", self.go_home, 3)
-        self.create_sidebar_tab(self.sidebar_frame, "Tab 4", self.go_home, 4)
-        self.create_sidebar_tab(self.sidebar_frame, "Tab 5", self.go_home, 5)
-        self.create_sidebar_tab(self.sidebar_frame, "Log Out", self.go_home, 6)
-
-    def create_sidebar_tab(self, frame, text, command, row):
-        """ Helper function to create each sidebar tab """
-        tab_button = ttk.Button(frame, text=text, command=command)
-        tab_button.grid(row=row, column=0, padx=10, pady=5, sticky="w")
-
-        style = ttk.Style()
-        style.configure(
-            "Custom.TButton",
-            background="#1e3a5f",  # Darkish blue
-            foreground="white",     # White text
-            font=("Arial", 12, "bold"),
-            relief="raised",        # Raised effect (simulates depth)
-            padding=(10, 5),        # Padding for more space inside
-            borderwidth=2,          # Border width for depth
-            anchor="center",  
-        )
-        style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
-        tab_button.configure(style="Custom.TButton")
+        self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
 
     def show_menu_for_day(self):
         selected_date_str = self.calendar.get_date()
@@ -228,22 +190,6 @@ class Menus(tk.Toplevel):
         # Reopen the Dashboard window
         self.dashboard.deiconify()
         self.dashboard.lift()
-
-    def create_clock(self, parent):
-        """ Create and display a label that shows real-time clock """
-        self.time_label = tk.Label(parent, font=("Helvetica", 20), bg="#d9f1fb")
-        self.time_label.grid(pady=10, sticky="ns")
-
-        # Update the clock every second
-        self.update_clock()
-
-    def update_clock(self):
-        """ Update the clock to show the current time """
-        current_time = time.strftime("%H:%M")  # Get current time
-        self.time_label.config(text=current_time)  # Update label with current time
-
-        # Call this function every 1000 milliseconds (1 second)
-        self.after(1000, self.update_clock)
 
     def on_close(self):
         self.destroy()

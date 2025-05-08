@@ -38,7 +38,7 @@ def highlight_weekdays(calendar_widget, get_displayed_month_fn):
             calendar_widget.tag_config("weekend", background="pink", foreground="black")
             disabled_weekends.add(day_date)
 
-    return disabled_weekends  # if you need to track disabled weekends
+    return disabled_weekends 
 
 def get_days_in_month(date):
     """ Get all the days in the month for the given date """

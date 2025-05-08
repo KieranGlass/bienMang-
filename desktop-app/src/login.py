@@ -3,9 +3,10 @@ from tkinter import ttk
 import sqlite3
 import sys
 
-class LoginWindow(tk.Tk):
-    def __init__(self):
+class LoginWindow(tk.Toplevel):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         self.title("Bien Manger - Login")
         self.geometry("400x300")
         self.configure(bg="#d9f1fb")
@@ -64,9 +65,9 @@ class LoginWindow(tk.Tk):
             # Check if the user exists
             if user:
                 # User exists, proceed to the main window
-                self.destroy()  # Close the login window
-                from dashboard import Dashboard  # Import the MainWindow class
-                Dashboard().mainloop()  # Run the main window
+                from dashboard import Dashboard
+                self.withdraw()
+                Dashboard(self, self)  # Run the main window
             else:
                 #User does not exist, show an error
                 error_label = ttk.Label(self.login_frame, text="Invalid username or password", foreground="red")
