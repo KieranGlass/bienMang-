@@ -8,7 +8,6 @@ from menus import Menus
 from reports import Reports
 from registers import Registers
 from admin import Setting
-from day_info import DayInfoPage
 
 
 def create_global_sidebar(app):
@@ -36,15 +35,15 @@ def create_sidebar_tab(frame, text, command, row):
     style = ttk.Style()
     style.configure(
         "Custom.TButton",
-        background="#1e3a5f",  # Darkish blue
-        foreground="white",     # White text
+        background="#1e3a5f",
+        foreground="white",
         font=("Arial", 12, "bold"),
-        relief="raised",        # Raised effect (simulates depth)
-        padding=(10, 5),        # Padding for more space inside
-        borderwidth=2,          # Border width for depth
+        relief="raised",
+        padding=(10, 5),
+        borderwidth=2,
         anchor="center",  
     )
-    style.map("Custom.TButton", background=[("active", "#2c4b7f")])  # Lighter blue on hover
+    style.map("Custom.TButton", background=[("active", "#2c4b7f")])
     tab_button.configure(style="Custom.TButton")
 
 def show_dashboard(self):

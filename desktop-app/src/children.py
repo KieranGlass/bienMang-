@@ -1,12 +1,11 @@
-import sqlite3
 import re
-from contextlib import closing
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 
-from utils import navigation_utils
+from utils import navigation_utils, clock_utils
+from utils.db_utils import common_db_utils, children_db_utils
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -19,142 +18,6 @@ TODO:
 - Design elements and buttons to pop and look nicer 
 - address how page looks when there are no entries
 '''
-
-def get_db_connection():
-    conn = sqlite3.connect('/database/bien-manger.db')
-    return conn
-
-def get_all_children():
-    """Fetch all children records from the database."""
-
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT * FROM children")
-        children = cursor.fetchall()
-        
-    return children
-
-def get_child(ID):
-    """Fetch a complete child record from the database using the child's ID."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT first_name, middle_name, last_name, birth_date, year_group, guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, guardian_two_fname, guardian_two_lname, guardian_two_contact_no FROM children WHERE id=?", (ID,))
-        child_data = cursor.fetchone() 
-    return child_data
-
-def add_child(
-    first_name, middle_name, last_name, birth_date, year_group,
-    guardian_one_fname, guardian_one_lname, guardian_one_contact_no, 
-    guardian_one_email, monday_arrival, monday_finish, 
-    tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, 
-    thursday_arrival, thursday_finish, friday_arrival, friday_finish,
-    guardian_two_fname=None, guardian_two_lname=None,
-    guardian_two_contact_no=None):
-
-    """Add a child to the database with all required fields."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('''
-            INSERT INTO children (
-                first_name, middle_name, last_name, birth_date, year_group,
-                guardian_one_fname, guardian_one_lname, guardian_one_contact_no,
-                guardian_one_email, guardian_two_fname, guardian_two_lname,
-                guardian_two_contact_no, monday_arrival, monday_finish, tuesday_arrival, 
-                tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, 
-                thursday_finish, friday_arrival, friday_finish
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            first_name, middle_name, last_name, birth_date, year_group,
-            guardian_one_fname, guardian_one_lname, guardian_one_contact_no,
-            guardian_one_email, guardian_two_fname, guardian_two_lname,
-            guardian_two_contact_no, monday_arrival, monday_finish, 
-            tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, 
-            thursday_arrival, thursday_finish, friday_arrival, friday_finish
-        ))
-        conn.commit()
-
-def delete_child_from_db(ID):
-    print(f"Deleting child with ID: {ID}")
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM Children WHERE id=?", (ID,))
-    conn.commit()
-
-def get_child_count():
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT COUNT(*) FROM Children")
-        total = cursor.fetchone()[0]
-    return total
-
-def get_age_group_petits():
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT COUNT(*) FROM Children WHERE year_group = 'Petits'")
-        total = cursor.fetchone()[0]
-    return total
-
-def get_age_group_moyens():
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT COUNT(*) FROM Children WHERE year_group = 'Moyens'")
-        total = cursor.fetchone()[0]
-    return total
-
-def get_age_group_grands():
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT COUNT(*) FROM Children WHERE year_group = 'Grands'")
-        total = cursor.fetchone()[0]
-    return total
-
-def get_schedule(ID):
-    """Fetch a complete child schedule record from the database using the child's ID."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, thursday_finish, friday_arrival, friday_finish FROM children WHERE id=?", (ID,))
-        schedule_data = cursor.fetchone()
-    return schedule_data
-
-def save_edited_child_info(id,
-    first_name, middle_name, last_name, birth_date, year_group, 
-    guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, 
-    guardian_two_fname, guardian_two_lname, guardian_two_contact_no):
-    """Save the edited child information into the database."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('''
-            UPDATE children
-            SET first_name=?, middle_name=?, last_name=?, birth_date=?, year_group=?,
-                guardian_one_fname=?, guardian_one_lname=?, guardian_one_contact_no=?, guardian_one_email=?,
-                guardian_two_fname=?, guardian_two_lname=?, guardian_two_contact_no=?
-            WHERE id=?
-        ''', (first_name, middle_name, last_name, birth_date, year_group, 
-              guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, 
-              guardian_two_fname, guardian_two_lname, guardian_two_contact_no, id))
-        conn.commit()
-    
-    messagebox.showinfo("Success", "Child info updated successfully.")
-
-def save_edited_child_schedule(id, 
-    monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, 
-    wednesday_arrival, wednesday_finish, thursday_arrival, thursday_finish, 
-    friday_arrival, friday_finish):
-
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('''
-            UPDATE children
-            SET monday_arrival=?, monday_finish=?, tuesday_arrival=?, tuesday_finish=?, wednesday_arrival=?, 
-                wednesday_finish=?, thursday_arrival=?, thursday_finish=?, friday_arrival=?, friday_finish=?
-            WHERE id=?
-        ''', (monday_arrival, monday_finish, tuesday_arrival, tuesday_finish, wednesday_arrival, 
-            wednesday_finish, thursday_arrival, thursday_finish, friday_arrival, friday_finish, id))
-        conn.commit()
-
-    messagebox.showinfo("Success", "Child schedule updated successfully.")
-
 
 class Children(tk.Toplevel):
     
@@ -246,19 +109,19 @@ class Children(tk.Toplevel):
         label_widget = ttk.Label(panel_frame, text="Creche Information", anchor="w", font=("Helvetica", 16))
         label_widget.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
-        total = get_child_count()
+        total = children_db_utils.get_child_count()
         label_widget = ttk.Label(panel_frame, text=f"Total Children: {total}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=1, column=0, padx=5, pady=5, sticky="w")
 
-        petits = get_age_group_petits()
+        petits = children_db_utils.get_age_group_petits()
         label_widget = ttk.Label(panel_frame, text=f"Petits Section: {petits}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
-        moyens = get_age_group_moyens()
+        moyens = children_db_utils.get_age_group_moyens()
         label_widget = ttk.Label(panel_frame, text=f"Moyens Section: {moyens}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=3, column=0, padx=5, pady=5, sticky="w")
         
-        grands = get_age_group_grands()
+        grands = children_db_utils.get_age_group_grands()
         label_widget = ttk.Label(panel_frame, text=f"Grands Section: {grands}", anchor="w", font=("Helvetica", 12))
         label_widget.grid(row=4, column=0, padx=5, pady=5, sticky="w")
 
@@ -348,7 +211,7 @@ class Children(tk.Toplevel):
         self.day_toggles = {}  # This will store the checkbox states
 
         # Generate the time slots for 7:30 AM to 6:00 PM, with 15-minute intervals
-        time_slots = self.generate_time_slots("7:30", "18:00", 15)
+        time_slots = clock_utils.generate_time_slots("7:30", "18:00", 15)
 
         # Create entry fields and checkboxes for each day
         for idx, day in enumerate(days):
@@ -577,7 +440,7 @@ class Children(tk.Toplevel):
             self.tree.delete(item)
 
         # Fetch all children from the database
-        children = get_all_children()  # Fetch children using the newly moved function
+        children = common_db_utils.get_all_children()  # Fetch children using the newly moved function
 
         # Insert children into the Treeview
         for child in children:
@@ -600,8 +463,8 @@ class Children(tk.Toplevel):
             id = item['values'][0]
     
             # Fetch the full student data from the database
-            student_data = get_child(id)
-            schedule_data = get_schedule(id)
+            student_data = children_db_utils.get_child(id)
+            schedule_data = children_db_utils.get_schedule(id)
 
             if student_data:
                 # Unpack values with handling for None (NULL) in the database
@@ -662,7 +525,7 @@ class Children(tk.Toplevel):
 
         child_id = self.tree.item(selected_item[0])['values'][0]
 
-        child_data = get_child(child_id)
+        child_data = children_db_utils.get_child(child_id)
 
         if not child_data:
             messagebox.showerror("Error", "No child found with this ID.")
@@ -698,7 +561,7 @@ class Children(tk.Toplevel):
             edited_data = [None if value == "" else value for value in edited_data]
     
             # Save the data to the DB
-            save_edited_child_info(child_id, *edited_data)
+            children_db_utils.save_edited_child_info(child_id, *edited_data)
             self.load_children()
             root.destroy()
 
@@ -715,7 +578,7 @@ class Children(tk.Toplevel):
             return
 
         child_id = self.tree.item(selected_item[0])['values'][0]
-        child_data = get_schedule(child_id)
+        child_data = children_db_utils.get_schedule(child_id)
 
         if not child_data:
             messagebox.showerror("Error", "No child found with this ID.")
@@ -734,7 +597,7 @@ class Children(tk.Toplevel):
         ]
 
         entries = []
-        time_slots = ["N/A"] + self.generate_time_slots("7:30", "18:00", 15)
+        time_slots = ["N/A"] + clock_utils.generate_time_slots("7:30", "18:00", 15)
 
         for idx, label in enumerate(labels):
             tk.Label(root, text=label).grid(row=idx, column=0, padx=10, pady=5)
@@ -774,7 +637,7 @@ class Children(tk.Toplevel):
 
             edited_data = [None if val == "" else val for val in edited_data]
 
-            save_edited_child_schedule(child_id, *edited_data)
+            children_db_utils.save_edited_child_schedule(child_id, *edited_data)
             self.load_children()
             root.destroy()
 
@@ -801,7 +664,7 @@ class Children(tk.Toplevel):
         
         if confirm:
             # Call the delete_child_from_db function to delete the item
-            delete_child_from_db(item_id)
+            children_db_utils.delete_child_from_db(item_id)
 
             self.tree.delete(selected_item[0])
 
@@ -849,22 +712,6 @@ class Children(tk.Toplevel):
             return True
         else:
             return False
-
-    def generate_time_slots(self, start_time="07:30", end_time="18:00", interval=15):
-
-        # Create a list to store time slots
-        time_slots = []
-    
-        # Parse the start and end times
-        start = datetime.strptime(start_time, "%H:%M")
-        end = datetime.strptime(end_time, "%H:%M")
-    
-        # Generate time slots from start_time to end_time with the specified interval
-        while start <= end:
-            time_slots.append(start.strftime("%H:%M"))
-            start += timedelta(minutes=interval)
-    
-        return time_slots
     
     def toggle_day(self, day):
         """Toggle the attendance for a specific day."""
@@ -885,8 +732,8 @@ class Children(tk.Toplevel):
             # Enable the combo boxes and reset to default value
             self.arrival_entries[day].config(state="normal")
             self.finish_entries[day].config(state="normal")
-            self.arrival_entries[day].set(self.generate_time_slots("7:30", "18:00", 15)[0])  # Default to 7:30 AM
-            self.finish_entries[day].set(self.generate_time_slots("7:30", "18:00", 15)[0])  # Default to 7:30 AM
+            self.arrival_entries[day].set(clock_utils.generate_time_slots("7:30", "18:00", 15)[0])  # Default to 7:30 AM
+            self.finish_entries[day].set(clock_utils.generate_time_slots("7:30", "18:00", 15)[0])  # Default to 7:30 AM
 
     def add_new_child(self):
         """Initiate the process of adding a new child."""
@@ -975,8 +822,6 @@ class Children(tk.Toplevel):
         """Persist the data to the database."""
         # Get all the data from the forms (child info and schedule info)
 
-
-
         first_name = self.first_name_entry.get()
         middle_name = self.middle_name_entry.get()
         last_name = self.last_name_entry.get()
@@ -1030,7 +875,7 @@ class Children(tk.Toplevel):
         # Add child to database
         try:
             # Assuming add_child is a function that stores child info to the database
-            add_child(
+            children_db_utils.add_child(
                 first_name, middle_name, last_name, birth_date, year_group,
                 guardian_one_fname, guardian_one_lname, guardian_one_contact_no,
                 guardian_one_email, monday_arrival, monday_finish, 
@@ -1044,7 +889,6 @@ class Children(tk.Toplevel):
             # Clear the form
             self.clear_form()
             
-
             # Go back to control panel
             self.notebook.tab(self.child_control_panel_frame, state='normal')
             self.notebook.select(self.child_control_panel_frame)
@@ -1055,10 +899,6 @@ class Children(tk.Toplevel):
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save child data: {str(e)}")
 
-    def on_close(self):
-        self.destroy()
-        self.dashboard.deiconify()
-
 if __name__ == "__main__":
     app = Children()
-    app.mainloop()  # Starts the Tkinter event loop
+    app.mainloop() 

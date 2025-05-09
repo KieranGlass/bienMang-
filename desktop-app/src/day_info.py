@@ -1,87 +1,9 @@
-import sqlite3
-from contextlib import closing
-
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime, timedelta
+from datetime import datetime
 from child_day_info import ChildDayInfoPage
 
-DEFAULT_MENUS = {
-        "monday": ("Beef and Carrot Puree", "Apple Compote", "Vegetable Soup", "Sautéed Beef and Potatoes", "Natural Yogurt"),
-        "tuesday": ("Chicken and Broccoli Puree", "Fromage Blanc", "Pasta Salad", "Roasted Chicken and Broccoli", "Cheese and Crackers"),
-        "wednesday": ("Lentil and Celeri Puree", "Banana Compote", "Cherry Tomatoes", "Lentil and Vegetable Curry", "Clementines"),
-        "thursday": ("Haddock and Green Bean Puree", "Pear Compote", "Green Bean Salad", "Haddock and Sweet Potato", "Rice Pudding"),
-        "friday": ("Pork and Cauliflower Puree", "Natural Yogurt", "Beetroot Salad", "Roasted Pork and Cauliflower", "Gateau au Chocolat")
-}
-
-def get_db_connection():
-    conn = sqlite3.connect('/database/bien-manger.db')
-    return conn
-
-def get_all_children():
-    """Fetch all children records from the database."""
-
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT * FROM children")
-        children = cursor.fetchall()
-        
-    return children
-
-def search_existing_register(register_date_str, children):
-    """Check if the register entry exists, if not, create one."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        # Check if the register already exists for the date
-        cursor.execute('SELECT 1 FROM registers WHERE date = ?', (register_date_str,))
-        if not cursor.fetchone():
-            for child in children:
-                child_id, first_name, middle_name, last_name, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
-                tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, \
-                thursday_finish, friday_arrival, friday_finish = child
-
-                # Determine the default arrival and finish times based on the weekday
-                weekday_name = datetime.strptime(register_date_str, "%Y-%m-%d").strftime('%A').lower()
-                arrival_column = f"{weekday_name}_arrival"
-                finish_column = f"{weekday_name}_finish"
-                arrival_time = locals()[arrival_column]
-                finish_time = locals()[finish_column]
-
-                cursor.execute('''INSERT INTO registers (date, child_id, adjusted_start_time, adjusted_end_time)
-                                VALUES (?, ?, ?, ?)''', (register_date_str, child_id, arrival_time, finish_time))
-            conn.commit()
-
-def search_adjusted_schedule(register_date_str, child_id):
-    """Check if there's an adjusted schedule for the day."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('SELECT adjusted_start_time, adjusted_end_time FROM registers WHERE date = ? AND child_id = ?', 
-                       (register_date_str, child_id))
-        adjusted_schedule = cursor.fetchone()
-    return adjusted_schedule
-
-def get_menu_by_date(selected_date):
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('SELECT baby_main, baby_dessert, grands_starter, grands_main, grands_dessert FROM menus WHERE date = ?', (selected_date,))
-        menu = cursor.fetchone()
-    return menu
-
-def create_new_menu(date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert):
-    with closing(get_db_connection()) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO menus (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert)
-            VALUES (?, ?, ?, ?, ?, ?)''', 
-            (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert))
-        conn.commit()
-
-def get_completed_status(selected_date, child_id):
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('SELECT completed FROM child_day_info WHERE date = ? AND child_id = ?', (selected_date, child_id,))
-        status = cursor.fetchone()
-    return status
+from utils.db_utils import common_db_utils, registers_db_utils, menus_db_utils
 
 class DayInfoPage(tk.Toplevel):
     def __init__(self, parent, selected_date):
@@ -121,11 +43,11 @@ class DayInfoPage(tk.Toplevel):
 
     def display_register(self, selected_date):
         
-        children = get_all_children()
+        children = common_db_utils.get_all_children()
         print(f"{selected_date}")
 
         # Fetch or create register entries for the selected date
-        search_existing_register(selected_date, children)
+        registers_db_utils.search_existing_register(selected_date, children)
 
         # Configure the grid for the table-like layout
         self.register_frame.grid_columnconfigure(0, weight=2, minsize=150)  # Column for name
@@ -162,7 +84,7 @@ class DayInfoPage(tk.Toplevel):
             finish_time = locals()[finish_column]
 
             # Check for adjusted schedule
-            adjusted_schedule = search_adjusted_schedule(selected_date, child_id)
+            adjusted_schedule = registers_db_utils.search_adjusted_schedule(selected_date, child_id)
             if adjusted_schedule:
                 adjusted_start, adjusted_end = adjusted_schedule
             else:
@@ -194,7 +116,7 @@ class DayInfoPage(tk.Toplevel):
                 tk.Label(row_frame, text=f"{first_name} {last_name}", width=20, bg="#f9f9f9").grid(row=0, column=0, sticky="ew", padx=10, pady=5)
                 tk.Label(row_frame, text=adjusted_start, width=10, bg="#f9f9f9").grid(row=0, column=1, sticky="ew", padx=10)
                 tk.Label(row_frame, text=adjusted_end, width=10, bg="#f9f9f9").grid(row=0, column=2, sticky="ew", padx=10)
-                status = get_completed_status(selected_date, child_id)
+                status = registers_db_utils.get_completed_status(selected_date, child_id)
                 print(f"{status}")
                 if status and status[0] == 1:
                     status_text = "Complete"
@@ -209,7 +131,7 @@ class DayInfoPage(tk.Toplevel):
             i += 1
 
     def display_menu(self, selected_date):
-        menu = get_menu_by_date(selected_date)
+        menu = menus_db_utils.get_menu_by_date(selected_date)
         selected_date_datetime = datetime.strptime(selected_date, "%Y-%m-%d")
         date_str = selected_date_datetime.strftime("%Y-%m-%d")
 
@@ -245,9 +167,9 @@ class DayInfoPage(tk.Toplevel):
 
             # Load default values based on the weekday
             weekday = selected_date_datetime.strftime("%A").lower()
-            defaults = DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
+            defaults = menus_db_utils.DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
 
-            create_new_menu(date_str, *defaults)
+            menus_db_utils.create_new_menu(date_str, *defaults)
             print("New menu created.")
 
             self.display_menu(selected_date)

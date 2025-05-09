@@ -1,68 +1,10 @@
-import sqlite3
-from contextlib import closing
-
 from utils import calendar_utils, clock_utils, navigation_utils
+from utils.db_utils import common_db_utils, registers_db_utils
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import Calendar
-from datetime import datetime, timedelta
-
-def get_db_connection():
-    conn = sqlite3.connect('/database/bien-manger.db')
-    return conn
-
-def get_all_children():
-    """Fetch all children records from the database."""
-
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute("SELECT * FROM children")
-        children = cursor.fetchall()
-        
-    return children
-
-def search_existing_register(register_date_str, children):
-    """Check if the register entry exists, if not, create one."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        # Check if the register already exists for the date
-        cursor.execute('SELECT 1 FROM registers WHERE date = ?', (register_date_str,))
-        if not cursor.fetchone():
-            for child in children:
-                child_id, first_name, middle_name, last_name, _, _, _, _, _, _, _, _, _, monday_arrival, monday_finish, \
-                tuesday_arrival, tuesday_finish, wednesday_arrival, wednesday_finish, thursday_arrival, \
-                thursday_finish, friday_arrival, friday_finish = child
-
-                # Determine the default arrival and finish times based on the weekday
-                weekday_name = datetime.strptime(register_date_str, "%Y-%m-%d").strftime('%A').lower()
-                arrival_column = f"{weekday_name}_arrival"
-                finish_column = f"{weekday_name}_finish"
-                arrival_time = locals()[arrival_column]
-                finish_time = locals()[finish_column]
-
-                cursor.execute('''INSERT INTO registers (date, child_id, adjusted_start_time, adjusted_end_time)
-                                VALUES (?, ?, ?, ?)''', (register_date_str, child_id, arrival_time, finish_time))
-            conn.commit()
-
-def search_adjusted_schedule(register_date_str, child_id):
-    """Check if there's an adjusted schedule for the day."""
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('SELECT adjusted_start_time, adjusted_end_time FROM registers WHERE date = ? AND child_id = ?', 
-                       (register_date_str, child_id))
-        adjusted_schedule = cursor.fetchone()
-    return adjusted_schedule
-
-def save_adjustment(date_str, child_id, start_entry, end_entry):
-    """Save adjustments made to the schedule."""
-    adjusted_start = start_entry.get()
-    adjusted_end = end_entry.get()
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('''INSERT OR REPLACE INTO registers (date, child_id, adjusted_start_time, adjusted_end_time)
-                          VALUES (?, ?, ?, ?)''', (date_str, child_id, adjusted_start, adjusted_end))
-        conn.commit()
+from datetime import datetime
             
 class Registers(tk.Toplevel):
     
@@ -198,12 +140,12 @@ class Registers(tk.Toplevel):
 
         self.update_day_label(selected_date)
 
-        children = get_all_children()
+        children = common_db_utils.get_all_children()
 
         selected_date_str = selected_date.strftime("%Y-%m-%d")
 
         # Fetch or create register entries for the selected date
-        search_existing_register(selected_date_str, children)
+        registers_db_utils.search_existing_register(selected_date_str, children)
 
         # Configure the grid for the table-like layout
         self.scrollable_register_frame.grid_columnconfigure(0, weight=2, minsize=150)  # Column for name
@@ -239,7 +181,7 @@ class Registers(tk.Toplevel):
             finish_time = locals()[finish_column]
 
             # Check for adjusted schedule
-            adjusted_schedule = search_adjusted_schedule(selected_date_str, child_id)
+            adjusted_schedule = registers_db_utils.search_adjusted_schedule(selected_date_str, child_id)
             if adjusted_schedule:
                 adjusted_start, adjusted_end = adjusted_schedule
             else:
@@ -317,7 +259,7 @@ class Registers(tk.Toplevel):
     def adjust_schedule(self, child_id, date, current_start, current_end, name):
         """Adjust the schedule for a child."""
         date_str = date.strftime("%Y-%m-%d")
-        time_options = self.generate_time_slots()
+        time_options = clock_utils.generate_time_slots()
         print(f"{current_start} // {current_end}")
 
         adjustment_window = tk.Toplevel(self)
@@ -374,7 +316,7 @@ class Registers(tk.Toplevel):
                     messagebox.showerror("Error", "Invalid time format.")
                     return
 
-            save_adjustment(date_str, child_id, start_combo, end_combo)
+            registers_db_utils.save_adjustment(date_str, child_id, start_combo, end_combo)
             self.display_children_for_day(date)
             adjustment_window.destroy()
 
@@ -412,32 +354,6 @@ class Registers(tk.Toplevel):
         save_button = ttk.Button(button_frame, text="Save", style="Save.TButton", command=validate_and_save)
         save_button.grid(row=0, column=1)
 
-    def generate_time_slots(self, start_time="07:30", end_time="18:00", interval=15):
-
-        # Create a list to store time slots
-        time_slots = ["N/A"]
-    
-        # Parse the start and end times
-        start = datetime.strptime(start_time, "%H:%M")
-        end = datetime.strptime(end_time, "%H:%M")
-    
-        # Generate time slots from start_time to end_time with the specified interval
-        while start <= end:
-            time_slots.append(start.strftime("%H:%M"))
-            start += timedelta(minutes=interval)
-    
-        return time_slots
-
-    def go_home(self):
-        
-        self.destroy()
-        
-        self.dashboard.deiconify()
-        self.dashboard.lift()
-
-    def on_close(self):
-        self.destroy()
-        self.dashboard.deiconify()
 
 if __name__ == "__main__":
     app = Registers()

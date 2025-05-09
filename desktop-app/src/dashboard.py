@@ -2,23 +2,14 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkcalendar import Calendar
-import time
-from datetime import datetime, timedelta
 
 from utils import calendar_utils, clock_utils, navigation_utils
 
 from login import LoginWindow
-from children import Children
-from menus import Menus
-from reports import Reports
-from registers import Registers
-from admin import Setting
 from day_info import DayInfoPage
-
 
 # TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
 
- 
 class Dashboard(tk.Toplevel):
     
     def __init__(self, parent, root_app):

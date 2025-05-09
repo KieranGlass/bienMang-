@@ -1,49 +1,10 @@
-import sqlite3
-from contextlib import closing
-
 from utils import calendar_utils, clock_utils, navigation_utils
+from utils.db_utils import menus_db_utils
 
 import tkinter as tk
 from tkinter import ttk
 from tkcalendar import Calendar
 from datetime import datetime
-
-DEFAULT_MENUS = {
-        "monday": ("Beef and Carrot Puree", "Apple Compote", "Vegetable Soup", "Sautéed Beef and Potatoes", "Natural Yogurt"),
-        "tuesday": ("Chicken and Broccoli Puree", "Fromage Blanc", "Pasta Salad", "Roasted Chicken and Broccoli", "Cheese and Crackers"),
-        "wednesday": ("Lentil and Celeri Puree", "Banana Compote", "Cherry Tomatoes", "Lentil and Vegetable Curry", "Clementines"),
-        "thursday": ("Haddock and Green Bean Puree", "Pear Compote", "Green Bean Salad", "Haddock and Sweet Potato", "Rice Pudding"),
-        "friday": ("Pork and Cauliflower Puree", "Natural Yogurt", "Beetroot Salad", "Roasted Pork and Cauliflower", "Gateau au Chocolat")
-}
-
-def get_db_connection():
-    conn = sqlite3.connect('/database/bien-manger.db')
-    return conn
-
-def search_existing_menu(date):
-    with closing(get_db_connection()) as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM menus WHERE date = ?', (date,))
-        return cursor.fetchone()
-
-def create_new_menu(date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert):
-    with closing(get_db_connection()) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO menus (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert)
-            VALUES (?, ?, ?, ?, ?, ?)''', 
-            (date, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert))
-        conn.commit()
-
-def update_menu(menu_id, baby_main, baby_dessert, grands_starter, grands_main, grands_dessert):
-    with closing(get_db_connection()) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE menus
-            SET baby_main = ?, baby_dessert = ?, grands_starter = ?, grands_main = ?, grands_dessert = ?
-            WHERE menu_id = ?''',
-            (baby_main, baby_dessert, grands_starter, grands_main, grands_dessert, menu_id))
-        conn.commit()
 
 class Menus(tk.Toplevel):
     
@@ -133,7 +94,7 @@ class Menus(tk.Toplevel):
             widget.destroy()  # Clear previous content
 
         date_str = selected_date.strftime("%Y-%m-%d")
-        menu = search_existing_menu(date_str)
+        menu = menus_db_utils.search_existing_menu(date_str)
 
         ttk.Label(self.menus_frame, text=f"Menu for {date_str}", font=("Arial", 16)).grid(row=0, column=0, columnspan=2, pady=10)
 
@@ -153,7 +114,7 @@ class Menus(tk.Toplevel):
 
             def save_edits():
                 updated_values = [e.get() for e in entries]
-                update_menu(menu[0], *updated_values)
+                menus_db_utils.update_menu(menu[0], *updated_values)
                 print("Menu updated.")
 
             action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
@@ -163,37 +124,25 @@ class Menus(tk.Toplevel):
 
             # Load default values based on the weekday
             weekday = selected_date.strftime("%A").lower()
-            defaults = DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
+            defaults = menus_db_utils.DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
 
             for i, value in enumerate(defaults):
                 entries[i].insert(0, value)
 
             new_values = [e.get() for e in entries]
-            create_new_menu(date_str, *new_values)
+            menus_db_utils.create_new_menu(date_str, *new_values)
             print("New menu created.")
 
-            menu = search_existing_menu(date_str)
+            menu = menus_db_utils.search_existing_menu(date_str)
 
             def save_edits():
                 updated_values = [e.get() for e in entries]
-                update_menu(menu[0], *updated_values)
+                menus_db_utils.update_menu(menu[0], *updated_values)
                 print("Menu updated.")
 
             action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
 
         action_btn.grid(row=len(labels)+2, column=0, columnspan=2, pady=20)
-
-    def go_home(self):
-        
-        self.destroy()
-        
-        # Reopen the Dashboard window
-        self.dashboard.deiconify()
-        self.dashboard.lift()
-
-    def on_close(self):
-        self.destroy()
-        self.dashboard.deiconify()
 
 if __name__ == "__main__":
     app = Menus()

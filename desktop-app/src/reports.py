@@ -69,14 +69,6 @@ class Reports(tk.Toplevel):
 
         self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
 
-    def go_home(self):
-        self.destroy()
-        self.dashboard.deiconify()
-
-    def on_close(self):
-        self.destroy()
-        self.dashboard.deiconify()
-
 if __name__ == "__main__":
     app = Reports()
     app.mainloop()  # Starts the Tkinter event loop

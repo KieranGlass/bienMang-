@@ -1,105 +1,8 @@
-import sqlite3
-from contextlib import closing
-
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime, timedelta
 from functools import partial
 
-
-def get_db_connection():
-    conn = sqlite3.connect('/database/bien-manger.db')
-    return conn
-
-def get_child_by_id(child_id):
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('SELECT * FROM children WHERE id =?', (child_id,))
-        child = cursor.fetchone()
-    
-    return child
-
-def save_day_info(self, completed):
-
-    child_id = self.child_id
-    selected_date = self.selected_date
-
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        # Get current data from the UI
-        starter = self.sliders.get("starter", None)
-        main = self.sliders.get("main")
-        dessert = self.sliders.get("dessert")
-        pooped = self.pooped_var.get()
-        poop_count = int(self.poop_count_spinbox.get()) if pooped else 0
-        sleep_duration = self.sleep_combobox.get()
-        comments = self.comments_text.get("1.0", tk.END).strip()
-
-        # Convert slider values (round to nearest int)
-        starter_val = int(round(starter.get())) if starter else None
-        main_val = int(round(main.get())) if main else None
-        dessert_val = int(round(dessert.get())) if dessert else None
-        # Check if entry exists
-        cursor.execute('''
-            SELECT id FROM child_day_info WHERE child_id = ? AND date = ?
-        ''', (child_id, selected_date))
-        existing = cursor.fetchone()
-        print(f"{completed}")
-        if existing:
-            print("Updating existing record:", existing)
-            # Update existing record
-            cursor.execute('''
-                UPDATE child_day_info
-                SET starter = ?, main = ?, dessert = ?, pooped = ?, poop_count = ?, 
-                    sleep_duration = ?, comments = ?, completed = ?
-                WHERE child_id = ? AND date = ?
-            ''', (
-                starter_val, main_val, dessert_val, pooped, poop_count,
-                sleep_duration, comments, completed, child_id, selected_date
-            ))
-            print("Rows updated:", conn.total_changes)
-        else:
-            # Insert new record
-            cursor.execute('''
-                INSERT INTO child_day_info 
-                (child_id, date, starter, main, dessert, pooped, poop_count, sleep_duration, comments, completed)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                child_id, selected_date, starter_val, main_val, dessert_val,
-                pooped, poop_count, sleep_duration, comments, completed
-            ))
-
-        conn.commit()
-    print("Day info saved and marked as complete." if completed == 1 else "Day info saved.")
-    self.parent.refresh_register(selected_date)
-    self.destroy()
-
-def load_day_info(self):
-    child_id = self.child_id
-    selected_date = self.selected_date
-
-    # Try to load existing day info
-    conn = get_db_connection()
-    with closing(conn.cursor()) as cursor:
-        cursor.execute('''
-            SELECT starter, main, dessert, pooped, poop_count, sleep_duration, comments
-            FROM child_day_info
-            WHERE child_id = ? AND date = ?
-        ''', (child_id, selected_date))
-        row = cursor.fetchone()
-
-        day_data = None
-    if row:
-        day_data = {
-            "starter": row[0],
-            "main": row[1],
-            "dessert": row[2],
-            "pooped": bool(row[3]),
-            "poop_count": row[4],
-            "sleep_duration": row[5],
-            "comments": row[6]
-        }
-    return day_data
+from utils.db_utils import children_db_utils, child_day_info_utils
 
 class ChildDayInfoPage(tk.Toplevel):
     def __init__(self, parent, child_id, selected_date):
@@ -113,9 +16,9 @@ class ChildDayInfoPage(tk.Toplevel):
 
     def setup_page_layout(self, child_id, selected_date):
             
-            child = get_child_by_id(child_id)
+            child = children_db_utils.get_child_by_id(child_id)
 
-            self.existing_day_data = load_day_info(self)
+            self.existing_day_data = child_day_info_utils.load_day_info(self)
 
             self.slider_words = {
                 1: "Nothing",
@@ -235,12 +138,12 @@ class ChildDayInfoPage(tk.Toplevel):
             buttons_frame.grid(row=row_counter, column=0, columnspan=2, pady=20)
 
             # Update Button
-            self.save_button = tk.Button(buttons_frame, text="Update", command=lambda: save_day_info(self, completed=0))
+            self.save_button = tk.Button(buttons_frame, text="Update", command=lambda: child_day_info_utils.save_day_info(self, completed=0))
             self.save_button.pack(side="left", padx=10)
 
             # Complete Day Button
             self.complete_button = tk.Button(buttons_frame, text="Complete Day", bg="#4CAF50", fg="white",
-                                 command=lambda: save_day_info(self, completed=1))
+                                 command=lambda: child_day_info_utils.save_day_info(self, completed=1))
             self.complete_button.pack(side="left", padx=10)
 
 
