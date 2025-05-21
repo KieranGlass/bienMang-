@@ -63,7 +63,7 @@ class Dashboard(tk.Toplevel):
             lambda event: calendar_utils.on_day_selected(
             self.calendar,
             self.disabled_weekends,
-            lambda date_str: calendar_utils.open_day_info(self, date_str, DayInfoPage)
+            lambda date_str: calendar_utils.open_day_info(self, self.root_app, date_str, DayInfoPage)
         )
 )
         # Bind the month change event to highlight the weekdays again

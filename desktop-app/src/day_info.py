@@ -3,15 +3,20 @@ from tkinter import ttk
 from datetime import datetime
 from child_day_info import ChildDayInfoPage
 
+
+from utils import navigation_utils
 from utils.db_utils import common_db_utils, registers_db_utils, menus_db_utils
 
 class DayInfoPage(tk.Toplevel):
-    def __init__(self, parent, selected_date):
+    def __init__(self, parent, root_app, selected_date):
         super().__init__(parent)
         self.selected_date = selected_date
+        self.root_app = root_app
         title_date = self.format_title_date(selected_date)
         self.title(f"{title_date}")
         self.geometry("1400x900")
+
+        self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
         # Menu Label
         self.menu_label = tk.Label(self, text="Menus", font=("Helvetica", 14, "bold"))
@@ -25,7 +30,7 @@ class DayInfoPage(tk.Toplevel):
         self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", font=("Helvetica", 12), padx=10, pady=10)
         self.grands_menu_frame.grid(row=4, column=0, sticky="new", padx=10)    
 
-        self.register_label = tk.Label(self, text="Register: ", font=("Helvetica", 14, "bold"))
+        self.register_label = tk.Label(self, text="Register", font=("Helvetica", 14, "bold"))
         self.register_label.grid(row=0, column=0, pady=5,  padx=10, sticky="w")
 
         self.register_frame = ttk.Frame(self)
@@ -34,9 +39,15 @@ class DayInfoPage(tk.Toplevel):
         self.display_register(selected_date)
         self.display_menu(selected_date)
 
+        self.button_frame = ttk.Frame(self)
+        self.button_frame.grid(row=5, column=0, sticky="nsew")
+
         # Back button to go back to the calendar dashboard
-        self.back_button = tk.Button(self, text="Close", command=self.go_back)
-        self.back_button.grid(row=5, column=0, columnspan=2, pady=10)
+        self.back_button = tk.Button(self.button_frame, text="Close", command=lambda: navigation_utils.on_close(self))
+        self.back_button.grid(row=0, column=0, pady=10, padx=10)
+
+        self.submit_button = tk.Button(self.button_frame, text="Submit Reports", command=self.submit_reports)
+        self.submit_button.grid(row=0, column=1, pady=10, padx=10)
 
         # Configure the grid layout of the window to be responsive
         self.grid_columnconfigure(0, weight=1)  
@@ -194,6 +205,5 @@ class DayInfoPage(tk.Toplevel):
         # Re-fetch and display the register for the selected date
         self.display_register(selected_date)
 
-    def go_back(self):
-        """ Closes this window and brings the user back to the calendar dashboard """
-        self.destroy() 
+    def submit_reports(self):
+        print("Submitting Reports!")

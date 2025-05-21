@@ -69,8 +69,9 @@ def on_day_selected(calendar_widget, disabled_weekends, open_day_info_fn):
     print("Opening day info page for " + selected_date_str)
     open_day_info_fn(selected_date_str)
 
-def open_day_info(parent_window, date_str, day_info_class):
+def open_day_info(parent_window, root_app, date_str, day_info_class):
     """Create and display a day info window for the selected date."""
-    day_info_window = day_info_class(parent_window, date_str)
+    day_info_window = day_info_class(root_app, root_app, date_str)
+    parent_window.destroy()
     day_info_window.grab_set()
-    day_info_window.mainloop()
+    
