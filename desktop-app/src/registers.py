@@ -8,7 +8,7 @@ from datetime import datetime
             
 class Registers(tk.Toplevel):
     
-    def __init__(self, parent, root_app):
+    def __init__(self, parent, root_app, date = None):
         super().__init__(parent)
         self.root_app = root_app
         self.parent = parent
@@ -17,7 +17,12 @@ class Registers(tk.Toplevel):
         self.geometry("1400x900")
         self.lift()
         self.create_registers_window()
-        self.default_register_for_day()
+
+        if date:
+            selected_date = datetime.strptime(date, "%Y-%m-%d")
+            self.display_children_for_day(selected_date)
+        else:
+            self.default_register_for_day()
 
         self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
@@ -160,7 +165,8 @@ class Registers(tk.Toplevel):
         self.scrollable_register_frame.grid_columnconfigure(0, weight=2, minsize=150)  # Column for name
         self.scrollable_register_frame.grid_columnconfigure(1, weight=1, minsize=100)  # Column for start time
         self.scrollable_register_frame.grid_columnconfigure(2, weight=1, minsize=100)  # Column for end time
-        self.scrollable_register_frame.grid_columnconfigure(3, weight=1, minsize=100)  # Column for adjust button
+        self.scrollable_register_frame.grid_columnconfigure(3, weight=1, minsize=50)  # Column for adjust button
+        self.scrollable_register_frame.grid_columnconfigure(4, weight=1, minsize=50)
 
         name_header = tk.Label(self.scrollable_register_frame, text="Child Name", font=("Arial", 12, "bold"))
         name_header.grid(row=1, column=0, padx=0, sticky="ew")
@@ -173,6 +179,9 @@ class Registers(tk.Toplevel):
 
         adjust_header = tk.Label(self.scrollable_register_frame, text="")
         adjust_header.grid(row=1, column=3, padx=10, sticky="ew")
+
+        absent_header = tk.Label(self.scrollable_register_frame, text="")
+        absent_header.grid(row=1, column=4, padx=10, sticky="ew")
 
         # Loop through the children and display their schedule
         i = 2  # Keep track of row index
@@ -227,6 +236,27 @@ class Registers(tk.Toplevel):
                 name=first_name + "" + last_name: self.adjust_schedule(id, date, start, end, name)
             )
             adjust_button.grid(row=i, column=3, padx=10, sticky="ew")
+
+            absent_button_style = ttk.Style()
+
+            absent_button_style.configure("LightPink.TButton",
+                background="#ffb6c1",
+                foreground="black",
+                borderwidth=1,
+                focusthickness=3,
+                focuscolor='none')
+            
+            absent_button_style.map("LightPink.TButton",
+                background=[("active", "#ff69b4")]) 
+
+            absent_button = ttk.Button(
+                self.scrollable_register_frame,
+                text="Absent",
+                style="LightPink.TButton",
+                
+                command=lambda id=child_id, date=selected_date: self.mark_absent(id, date)
+            )
+            absent_button.grid(row=i, column=4, padx=10, sticky="ew")
 
             # Increment the row index for the next child
             i += 1
@@ -363,6 +393,11 @@ class Registers(tk.Toplevel):
         save_button = ttk.Button(button_frame, text="Save", style="Save.TButton", command=validate_and_save)
         save_button.grid(row=0, column=1)
 
+    def mark_absent(self, child_id, date):
+        """Set a child's register to 'N/A' for both start and end times."""
+        date_str = date.strftime("%Y-%m-%d")
+        registers_db_utils.save_adjustment(date_str, child_id, "N/A", "N/A")
+        self.display_children_for_day(date)
 
 if __name__ == "__main__":
     app = Registers()

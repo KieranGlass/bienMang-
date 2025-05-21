@@ -36,8 +36,8 @@ def search_adjusted_schedule(register_date_str, child_id):
 
 def save_adjustment(date_str, child_id, start_entry, end_entry):
     """Save adjustments made to the schedule."""
-    adjusted_start = start_entry.get()
-    adjusted_end = end_entry.get()
+    adjusted_start = start_entry.get() if hasattr(start_entry, "get") else start_entry
+    adjusted_end = end_entry.get() if hasattr(end_entry, "get") else end_entry
     conn = common_db_utils.get_db_connection()
     with closing(conn.cursor()) as cursor:
         cursor.execute('''INSERT OR REPLACE INTO registers (date, child_id, adjusted_start_time, adjusted_end_time)

@@ -18,29 +18,35 @@ class DayInfoPage(tk.Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
-        # Menu Label
-        self.menu_label = tk.Label(self, text="Menus", font=("Helvetica", 14, "bold"))
-        self.menu_label.grid(row=2, column=0, pady=5, sticky="w", padx=10)
-
-        # Baby Menu Section
-        self.baby_menu_frame = tk.LabelFrame(self, text="Baby Menu", font=("Helvetica", 12), padx=10, pady=10)
-        self.baby_menu_frame.grid(row=3, column=0, sticky="new", padx=10)
-
-        # Grands Menu Section
-        self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", font=("Helvetica", 12), padx=10, pady=10)
-        self.grands_menu_frame.grid(row=4, column=0, sticky="new", padx=10)    
-
         self.register_label = tk.Label(self, text="Register", font=("Helvetica", 14, "bold"))
         self.register_label.grid(row=0, column=0, pady=5,  padx=10, sticky="w")
 
         self.register_frame = ttk.Frame(self)
         self.register_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=20)
 
+        self.register_button_frame = ttk.Frame(self)
+        self.register_button_frame.grid(row=2, column=0, sticky="nsew")
+
+        self.mod_register_button = tk.Button(self.register_button_frame, text="Modify Register", command=lambda: navigation_utils.show_registers(self, selected_date))
+        self.mod_register_button.grid(row=0, column=0, padx=10, pady=10)
+        
+        # Menu Label
+        self.menu_label = tk.Label(self, text="Menus", font=("Helvetica", 14, "bold"))
+        self.menu_label.grid(row=3, column=0, pady=5, sticky="w", padx=10)
+
+        # Baby Menu Section
+        self.baby_menu_frame = tk.LabelFrame(self, text="Baby Menu", font=("Helvetica", 12), padx=10, pady=10)
+        self.baby_menu_frame.grid(row=4, column=0, sticky="new", padx=10)
+
+        # Grands Menu Section
+        self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", font=("Helvetica", 12), padx=10, pady=10)
+        self.grands_menu_frame.grid(row=5, column=0, sticky="new", padx=10)    
+
         self.display_register(selected_date)
         self.display_menu(selected_date)
 
         self.button_frame = ttk.Frame(self)
-        self.button_frame.grid(row=5, column=0, sticky="nsew")
+        self.button_frame.grid(row=6, column=0, sticky="nsew")
 
         # Back button to go back to the calendar dashboard
         self.back_button = tk.Button(self.button_frame, text="Close", command=lambda: navigation_utils.on_close(self))

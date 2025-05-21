@@ -56,10 +56,13 @@ def show_children(self):
     self.withdraw()
     children_window = Children(self, self.root_app)
            
-def show_registers(self):
+def show_registers(self, selected_date = None):
     print("Showing registers")
     self.withdraw()
-    registers_window = Registers(self, self.root_app)
+    if selected_date:
+        registers_window = Registers(self, self.root_app, selected_date)
+    else:
+        registers_window = Registers(self, self.root_app)
             
 def show_menus(self):
     print("Showing menus")
