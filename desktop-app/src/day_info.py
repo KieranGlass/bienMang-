@@ -49,6 +49,9 @@ class DayInfoPage(tk.Toplevel):
         self.submit_button = tk.Button(self.button_frame, text="Submit Reports", command=self.submit_reports)
         self.submit_button.grid(row=0, column=1, pady=10, padx=10)
 
+        self.publish_button = tk.Button(self.button_frame, text="Publish to Parents", command=self.submit_reports)
+        self.publish_button.grid(row=0, column=2, pady=10, padx=10)
+
         # Configure the grid layout of the window to be responsive
         self.grid_columnconfigure(0, weight=1)  
 

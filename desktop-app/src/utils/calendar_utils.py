@@ -57,7 +57,7 @@ def on_month_change(calendar_widget, get_displayed_month_fn, set_disabled_weeken
         set_disabled_weekends_fn(disabled)
 
 def on_day_selected(calendar_widget, disabled_weekends, open_day_info_fn):
-    """Generic handler for when a calendar day is selected."""
+    
     selected_date_str = calendar_widget.get_date()
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
@@ -68,6 +68,16 @@ def on_day_selected(calendar_widget, disabled_weekends, open_day_info_fn):
 
     print("Opening day info page for " + selected_date_str)
     open_day_info_fn(selected_date_str)
+
+def on_day_selected_for_button(calendar_widget, disabled_weekends):
+    
+    selected_date_str = calendar_widget.get_date()
+    selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+
+    if selected_date in disabled_weekends:
+        print(f"Weekend selected: {selected_date}. Selection disabled.")
+        calendar_widget.selection_clear()
+        return
 
 def open_day_info(parent_window, root_app, date_str, day_info_class):
     """Create and display a day info window for the selected date."""

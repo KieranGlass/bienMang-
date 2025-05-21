@@ -143,6 +143,8 @@ def create_tables():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 child_id INTEGER NOT NULL,
                 date TEXT NOT NULL,
+                actual_arrival TEXT,
+                actual_finish TEXT, 
                 starter INTEGER,
                 main INTEGER,
                 dessert INTEGER,

@@ -48,14 +48,24 @@ class Menus(tk.Toplevel):
         self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd')
         self.calendar.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
+         # Bind the calendar selection event
+        self.calendar.bind(
+            "<<CalendarSelected>>",
+            lambda event: calendar_utils.on_day_selected_for_button(
+            self.calendar,
+            self.disabled_weekends
+            )
+        )       
+
         self.calendar.bind(
             "<<CalendarMonthChanged>>",
             lambda event: calendar_utils.on_month_change(
             self.calendar,
             self.calendar.get_displayed_month,
             lambda val: setattr(self, "disabled_weekends", val)
+            )
         )
-)
+        
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 

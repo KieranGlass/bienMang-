@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from functools import partial
 
+from utils import clock_utils
 from utils.db_utils import children_db_utils, child_day_info_utils
 
 class ChildDayInfoPage(tk.Toplevel):
@@ -32,7 +33,7 @@ class ChildDayInfoPage(tk.Toplevel):
             lname = child[3]
             self.title(f"{fname} {lname}: {selected_date}")
             group = child[5].lower() if child[5] else "baby"
-            print(f"Child group: {group}")
+            print(f"Age group: {group}")
 
             # Root grid config
             self.grid_columnconfigure(0, weight=1)
@@ -54,15 +55,49 @@ class ChildDayInfoPage(tk.Toplevel):
                 anchor="center",
                 justify="center"
             )
+
+            # Generate durations
+            durations = []
+            for minutes in range(0, 241, 15):
+                hours = minutes // 60
+                mins = minutes % 60
+                if hours == 0:
+                    label = f"{mins} mins" if mins > 0 else "0"
+                elif mins == 0:
+                    label = f"{hours} hour" if hours == 1 else f"{hours} hours"
+                else:
+                    hour_label = f"{hours} hour" if hours == 1 else f"{hours} hours"
+                    label = f"{hour_label} {mins} mins"
+                durations.append(label)
+
             self.title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20), sticky="n")
 
+            #arrival time
+            tk.Label(main_frame, text=f"What time did {fname} arrive?").grid(row=1, column=0, sticky='w', padx=10, pady=5)
+            self.arrival_combobox = ttk.Combobox(main_frame, values=clock_utils.generate_time_slots(), state="readonly", width=20)
+            self.arrival_combobox.grid(row=1, column=1, sticky='w', padx=10)
+
+            if self.existing_day_data:
+                self.arrival_combobox.set(self.existing_day_data["actual_arrival"])
+            else:
+                self.arrival_combobox.current(0)
+
+            #departure time
+            tk.Label(main_frame, text=f"What time did {fname} leave?").grid(row=2, column=0, sticky='w', padx=10, pady=5)
+            self.departure_combobox = ttk.Combobox(main_frame, values=clock_utils.generate_time_slots(), state="readonly", width=20)
+            self.departure_combobox.grid(row=2, column=1, sticky='w', padx=10)
+
+            if self.existing_day_data:
+                self.departure_combobox.set(self.existing_day_data["actual_finish"])
+            else:
+                self.departure_combobox.current(0)
 
             # How well the child ate
-            tk.Label(main_frame, text=f"How well did {fname} eat?").grid(row=1, column=0, sticky='w', padx=10, pady=5)
+            tk.Label(main_frame, text=f"How well did {fname} eat?").grid(row=3, column=0, sticky='w', padx=10, pady=5)
 
             self.sliders = {}  # to store slider values
 
-            row_counter = 2
+            row_counter = 4
 
             # Sliders based on group
             if group in ["grands", "moyens"]:
@@ -81,7 +116,7 @@ class ChildDayInfoPage(tk.Toplevel):
 
             # Poop Checkbox
             self.pooped_var = tk.BooleanVar()
-            tk.Label(main_frame, text="Did the child poop?").grid(row=row_counter, column=0, sticky="w", padx=(10, 5), pady=10)
+            tk.Label(main_frame, text=f"Did {fname} poop?").grid(row=row_counter, column=0, sticky="w", padx=(10, 5), pady=10)
 
             self.poop_checkbox = tk.Checkbutton(main_frame, variable=self.pooped_var, command=self.toggle_poop_count)
             self.poop_checkbox.grid(row=row_counter, column=1, sticky="w", pady=10)
@@ -99,20 +134,6 @@ class ChildDayInfoPage(tk.Toplevel):
                 self.poop_count_spinbox.delete(0, 'end')
                 self.poop_count_spinbox.insert(0, str(self.existing_day_data["poop_count"]))
             row_counter += 1
-
-            # Generate durations
-            durations = []
-            for minutes in range(0, 241, 15):
-                hours = minutes // 60
-                mins = minutes % 60
-                if hours == 0:
-                    label = f"{mins} mins" if mins > 0 else "0"
-                elif mins == 0:
-                    label = f"{hours} hour" if hours == 1 else f"{hours} hours"
-                else:
-                    hour_label = f"{hours} hour" if hours == 1 else f"{hours} hours"
-                    label = f"{hour_label} {mins} mins"
-                durations.append(label)
 
             # Label and dropdown
             tk.Label(main_frame, text=f"How long did {fname} sleep?").grid(row=row_counter, column=0, sticky='w', padx=10, pady=5)

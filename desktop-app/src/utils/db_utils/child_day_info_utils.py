@@ -11,6 +11,8 @@ def save_day_info(self, completed):
     conn = common_db_utils.get_db_connection()
     with closing(conn.cursor()) as cursor:
         # Get current data from the UI
+        arrival_time = self.arrival_combobox.get()
+        departure_time = self.departure_combobox.get()
         starter = self.sliders.get("starter", None)
         main = self.sliders.get("main")
         dessert = self.sliders.get("dessert")
@@ -34,11 +36,11 @@ def save_day_info(self, completed):
             # Update existing record
             cursor.execute('''
                 UPDATE child_day_info
-                SET starter = ?, main = ?, dessert = ?, pooped = ?, poop_count = ?, 
+                SET actual_arrival = ?, actual_finish = ?, starter = ?, main = ?, dessert = ?, pooped = ?, poop_count = ?, 
                     sleep_duration = ?, comments = ?, completed = ?
                 WHERE child_id = ? AND date = ?
             ''', (
-                starter_val, main_val, dessert_val, pooped, poop_count,
+                arrival_time, departure_time, starter_val, main_val, dessert_val, pooped, poop_count,
                 sleep_duration, comments, completed, child_id, selected_date
             ))
             print("Rows updated:", conn.total_changes)
@@ -46,10 +48,10 @@ def save_day_info(self, completed):
             # Insert new record
             cursor.execute('''
                 INSERT INTO child_day_info 
-                (child_id, date, starter, main, dessert, pooped, poop_count, sleep_duration, comments, completed)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (child_id, date, actual_arrival, actual_finish, starter, main, dessert, pooped, poop_count, sleep_duration, comments, completed)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
-                child_id, selected_date, starter_val, main_val, dessert_val,
+                child_id, selected_date, arrival_time, departure_time, starter_val, main_val, dessert_val,
                 pooped, poop_count, sleep_duration, comments, completed
             ))
 
@@ -66,7 +68,7 @@ def load_day_info(self):
     conn = common_db_utils.get_db_connection()
     with closing(conn.cursor()) as cursor:
         cursor.execute('''
-            SELECT starter, main, dessert, pooped, poop_count, sleep_duration, comments
+            SELECT actual_arrival, actual_finish, starter, main, dessert, pooped, poop_count, sleep_duration, comments
             FROM child_day_info
             WHERE child_id = ? AND date = ?
         ''', (child_id, selected_date))
@@ -75,12 +77,14 @@ def load_day_info(self):
         day_data = None
     if row:
         day_data = {
-            "starter": row[0],
-            "main": row[1],
-            "dessert": row[2],
-            "pooped": bool(row[3]),
-            "poop_count": row[4],
-            "sleep_duration": row[5],
-            "comments": row[6]
+            "actual_arrival": row[0],
+            "actual_finish": row[1],
+            "starter": row[2],
+            "main": row[3],
+            "dessert": row[4],
+            "pooped": bool(row[5]),
+            "poop_count": row[6],
+            "sleep_duration": row[7],
+            "comments": row[8]
         }
     return day_data
