@@ -124,3 +124,35 @@ def get_day_info_by_date(child_id, date):
         "sleep_duration": row[6],
         "comments": row[7]
     }
+
+def get_data_for_dates(child_id, date_list):
+    
+    conn = common_db_utils.get_db_connection()
+    cursor = conn.cursor()
+
+    results = []
+    for date in date_list:
+        cursor.execute("""
+            SELECT 
+                date, actual_arrival, actual_finish, main, dessert,
+                pooped, poop_count, sleep_duration, comments
+            FROM child_day_info
+            WHERE child_id = ? AND date = ?
+        """, (child_id, date))
+
+        row = cursor.fetchone()
+        if row:
+            results.append({
+                "date": row[0],
+                "arrival": row[1],
+                "departure": row[2],
+                "main": row[3],
+                "dessert": row[4],
+                "pooped": bool(row[5]),
+                "poop_count": row[6],
+                "sleep": row[7],
+                "comments": row[8]
+            })
+
+    conn.close()
+    return results

@@ -52,12 +52,6 @@ class DayInfoPage(tk.Toplevel):
         self.back_button = tk.Button(self.button_frame, text="Close", command=lambda: navigation_utils.on_close(self))
         self.back_button.grid(row=0, column=0, pady=10, padx=10)
 
-        self.submit_button = tk.Button(self.button_frame, text="Submit Reports", command=self.submit_reports)
-        self.submit_button.grid(row=0, column=1, pady=10, padx=10)
-
-        self.publish_button = tk.Button(self.button_frame, text="Publish to Parents", command=self.submit_reports)
-        self.publish_button.grid(row=0, column=2, pady=10, padx=10)
-
         # Configure the grid layout of the window to be responsive
         self.grid_columnconfigure(0, weight=1)  
 
@@ -213,6 +207,3 @@ class DayInfoPage(tk.Toplevel):
 
         # Re-fetch and display the register for the selected date
         self.display_register(selected_date)
-
-    def submit_reports(self):
-        print("Submitting Reports!")

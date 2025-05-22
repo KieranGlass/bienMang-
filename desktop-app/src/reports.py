@@ -45,17 +45,36 @@ class Reports(tk.Toplevel):
         report_type_combo = ttk.Combobox(
             controls_frame,
             textvariable=self.report_type_var,
-            values=["Attendance", "Meals", "Sleep", "Toileting", "Comments"],
-            state="readonly"
+            values=[
+                "All Data (Day)",
+                "All Data (Week)",
+                "All Data (Month)",
+                "Meals (Week)",
+                "Meals (Month)",
+                "Sleep (Week)",
+                "Sleep (Month)",
+                "Toileting (Week)",
+                "Toileting (Month)",
+                "Comments (Week)",
+                "Comments (Month)"
+            ],
+            state="readonly",
+            width=25
         )
         report_type_combo.grid(row=0, column=1, padx=(0, 10), sticky="w")
-        report_type_combo.current(0)
+        report_type_combo.current(0)  # Default: "All Data (Day)")
 
         generate_button = ttk.Button(controls_frame, text="Generate", command=self.generate_report)
-        generate_button.grid(row=0, column=2, padx=10, sticky="w")
+        generate_button.grid(row=0, column=2, padx=10)
+
+        self.submit_button = tk.Button(controls_frame, text="Submit Reports", command=self.submit_reports)
+        self.submit_button.grid(row=0, column=3, pady=10, padx=10)
+
+        self.publish_button = tk.Button(controls_frame, text="Publish to Parents", command=self.submit_reports)
+        self.publish_button.grid(row=0, column=4, pady=10, padx=10)
 
         export_button = ttk.Button(controls_frame, text="Export", command=self.export_report)
-        export_button.grid(row=0, column=3, sticky="e")
+        export_button.grid(row=0, column=5)
 
         # === Report Table ===
         self.report_table = ttk.Treeview(self.reports_frame, columns=("Name", "Arrival", "Departure", "Meal", "Sleep", "Poop", "Comments"), show='headings')
@@ -115,45 +134,89 @@ class Reports(tk.Toplevel):
 
     def generate_report(self):
 
-        for row in self.report_table.get_children():
-            self.report_table.delete(row)
+        # Clear existing table data
+        self.report_table.delete(*self.report_table.get_children())
 
-        selected_date = self.calendar.get_date()
+        # Get selected report type and date
         report_type = self.report_type_var.get()
+        selected_date = self.calendar.get_date()
 
-        children = common_db_utils.get_all_children()
+        # Determine date range
+        if "Week" in report_type:
+            date_range = calendar_utils.get_week_dates(selected_date)
+        elif "Month" in report_type:
+            date_range = calendar_utils.get_month_dates(selected_date)
+        else:  # "Day"
+            date_range = [selected_date]
 
-        for child in children:
+        # Set up dynamic columns
+        if report_type.startswith("All Data"):
+            self.report_table["columns"] = (
+                "Date", "Child", "Arrival", "Departure",
+                "Main", "Dessert", "Sleep", "Pooped", "Poop Count", "Comments"
+            )
+        elif report_type.startswith("Meals"):
+            self.report_table["columns"] = ("Date", "Child", "Main", "Dessert")
+        elif report_type.startswith("Sleep"):
+            self.report_table["columns"] = ("Date", "Child", "Sleep Duration")
+        elif report_type.startswith("Toileting"):
+            self.report_table["columns"] = ("Date", "Child", "Pooped", "Poop Count")
+        elif report_type.startswith("Comments"):
+            self.report_table["columns"] = ("Date", "Child", "Comments")
+
+        for col in self.report_table["columns"]:
+            self.report_table.heading(col, text=col)
+
+        # Fetch and display data
+        for child in common_db_utils.get_all_children():
             child_id = child[0]
-            fname = child[1]
-            lname = child[3]
-            full_name = f"{fname} {lname}"
+            full_name = f"{child[1]} {child[3]}"
+            entries = child_day_info_utils.get_data_for_dates(child_id, date_range)
 
-            day_data = child_day_info_utils.get_day_info_by_date(child_id, selected_date)
-            if not day_data:
-                continue
+            for entry in entries:
+                if report_type.startswith("All Data"):
+                    row = (
+                        entry["date"],
+                        full_name,
+                        entry.get("arrival", "-"),
+                        entry.get("departure", "-"),
+                        entry.get("main", "-"),
+                        entry.get("dessert", "-"),
+                        entry.get("sleep", "-"),
+                        "Yes" if entry.get("pooped") else "No",
+                        entry.get("poop_count", 0),
+                        (entry.get("comments") or "")[:50]
+                    )
+                elif report_type.startswith("Meals"):
+                    row = (
+                        entry["date"],
+                        full_name,
+                        entry.get("main", "-"),
+                        entry.get("dessert", "-")
+                    )
+                elif report_type.startswith("Sleep"):
+                    row = (
+                        entry["date"],
+                        full_name,
+                        entry.get("sleep", "-")
+                    )
+                elif report_type.startswith("Toileting"):
+                    row = (
+                        entry["date"],
+                        full_name,
+                        "Yes" if entry.get("pooped") else "No",
+                        entry.get("poop_count", 0)
+                    )
+                elif report_type.startswith("Comments"):
+                    row = (
+                        entry["date"],
+                        full_name,
+                        (entry.get("comments") or "")[:100]
+                    )
+                else:
+                    continue  # unknown report type
 
-            if report_type == "Attendance":
-                row = (full_name, day_data.get("actual_arrival", "-"), day_data.get("actual_finish", "-"), "", "", "", "")
-            elif report_type == "Meals":
-                main = day_data.get("main", 3)
-                dessert = day_data.get("dessert", 3)
-                meal_summary = f"Main: {main}, Dessert: {dessert}"
-                row = (full_name, "", "", meal_summary, "", "", "")
-            elif report_type == "Sleep":
-                row = (full_name, "", "", "", day_data.get("sleep_duration", "-"), "", "")
-            elif report_type == "Toileting":
-                pooped = "Yes" if day_data.get("pooped") else "No"
-                count = day_data.get("poop_count", 0)
-                poop_summary = f"{pooped} ({count})"
-                row = (full_name, "", "", "", "", poop_summary, "")
-            elif report_type == "Comments":
-                comments = day_data.get("comments", "").strip()
-                row = (full_name, "", "", "", "", "", comments[:50])
-            else:
-                row = (full_name, "-", "-", "-", "-", "-", "-")
-
-            self.report_table.insert("", "end", values=row)
+                self.report_table.insert("", "end", values=row)
 
     def export_report(self):
         import csv
@@ -169,6 +232,5 @@ class Reports(tk.Toplevel):
                     row = self.report_table.item(row_id)["values"]
                     writer.writerow(row)
 
-if __name__ == "__main__":
-    app = Reports()
-    app.mainloop()  # Starts the Tkinter event loop
+    def submit_reports(self):
+        print("Submitting Reports!")

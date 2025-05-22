@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkcalendar import Calendar
+from datetime import date
 
 from utils import calendar_utils, clock_utils, navigation_utils
 
@@ -50,7 +51,7 @@ class Dashboard(tk.Toplevel):
 
     def create_calendar(self, parent):
         """ Create and display the calendar widget """
-        self.calendar = Calendar(parent, selectmode="day", date_pattern="y-mm-dd")
+        self.calendar = Calendar(parent, selectmode="day", date_pattern="y-mm-dd", maxdate=date.today())
         self.calendar.grid(row=0, column=0, sticky="nsew")
 
         # Set the calendar to take up all the available space in the grid cell
@@ -64,8 +65,8 @@ class Dashboard(tk.Toplevel):
             self.calendar,
             self.disabled_weekends,
             lambda date_str: calendar_utils.open_day_info(self, self.root_app, date_str, DayInfoPage)
+            )
         )
-)
         # Bind the month change event to highlight the weekdays again
         self.calendar.bind(
             "<<CalendarMonthChanged>>",
@@ -73,8 +74,8 @@ class Dashboard(tk.Toplevel):
             self.calendar,
             self.calendar.get_displayed_month,
             lambda val: setattr(self, "disabled_weekends", val)
+            )
         )
-)
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 

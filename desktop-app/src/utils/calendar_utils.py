@@ -1,4 +1,10 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
 from datetime import datetime, timedelta
+from calendar import monthrange
+from datetime import datetime, timedelta
+
 
 def highlight_weekdays(calendar_widget, get_displayed_month_fn):
     """Highlight weekdays and weekends on the calendar_widget"""
@@ -85,3 +91,11 @@ def open_day_info(parent_window, root_app, date_str, day_info_class):
     parent_window.destroy()
     day_info_window.grab_set()
     
+def get_week_dates(start_date_str):
+    start = datetime.strptime(start_date_str, "%Y-%m-%d")
+    return [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
+
+def get_month_dates(start_date_str):
+    start = datetime.strptime(start_date_str, "%Y-%m-%d")
+    days = monthrange(start.year, start.month)[1]
+    return [(start.replace(day=1) + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days)]
