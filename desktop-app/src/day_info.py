@@ -18,7 +18,7 @@ class DayInfoPage(tk.Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
-        self.register_label = tk.Label(self, text="Register", font=("Helvetica", 14, "bold"))
+        self.register_label = tk.Label(self, text="Scheduled Register", font=("Helvetica", 14, "bold"))
         self.register_label.grid(row=0, column=0, pady=5,  padx=10, sticky="w")
 
         self.register_frame = ttk.Frame(self)

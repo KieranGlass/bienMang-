@@ -88,3 +88,39 @@ def load_day_info(self):
             "comments": row[8]
         }
     return day_data
+
+
+def get_day_info_by_date(child_id, date):
+    conn = common_db_utils.get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            actual_arrival,
+            actual_finish,
+            main,
+            dessert,
+            pooped,
+            poop_count,
+            sleep_duration,
+            comments
+        FROM child_day_info
+        WHERE child_id = ? AND date = ?
+    """, (child_id, date))
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return {
+        "actual_arrival": row[0],
+        "actual_finish": row[1],
+        "main": row[2],
+        "dessert": row[3],
+        "pooped": bool(row[4]),
+        "poop_count": row[5],
+        "sleep_duration": row[6],
+        "comments": row[7]
+    }
