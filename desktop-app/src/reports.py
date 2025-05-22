@@ -77,10 +77,18 @@ class Reports(tk.Toplevel):
         export_button.grid(row=0, column=5)
 
         # === Report Table ===
-        self.report_table = ttk.Treeview(self.reports_frame, columns=("Name", "Arrival", "Departure", "Meal", "Sleep", "Poop", "Comments"), show='headings')
+        default_columns = (
+            "Date", "Child", "Arrival", "Departure",
+            "Main", "Dessert", "Sleep", "Pooped", "Poop Count", "Comments"
+        )
+        self.report_table = ttk.Treeview(
+            self.reports_frame,
+            columns=default_columns,
+            show='headings'
+        )
         self.report_table.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
-        for col in self.report_table["columns"]:
+        for col in default_columns:
             self.report_table.heading(col, text=col)
 
         # Calendar Frame
@@ -130,6 +138,9 @@ class Reports(tk.Toplevel):
 
         # Clock
         self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
+
+        self.report_type_var.set("All Data (Day)")
+        self.generate_report()
 
 
     def generate_report(self):
