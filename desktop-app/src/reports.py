@@ -368,4 +368,3 @@ class Reports(tk.Toplevel):
         total_height = self.winfo_height()
         target_height = int(total_height * 0.4)  # 40% of window height
         self.table_frame.configure(height=target_height)
-
