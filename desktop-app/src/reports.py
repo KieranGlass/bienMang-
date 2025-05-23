@@ -20,6 +20,8 @@ class Reports(tk.Toplevel):
         self.lift()
         self.create_reports_window()
 
+
+        self.bind("<Configure>", self.resize_table_frame)
         self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))    
 
     def create_reports_window(self):
@@ -74,18 +76,38 @@ class Reports(tk.Toplevel):
         print_button = ttk.Button(controls_frame, text="Print", command=self.print_report)
         print_button.grid(row=0, column=6, padx=10)
 
+        style = ttk.Style()
+        style.configure("Treeview", rowheight=25)  # default
+        style.configure("Tall.Treeview", rowheight=120)
+
         # === Report Table ===
         default_columns = (
             "Date", "Child", "Arrival", "Departure",
             "Main", "Dessert", "Sleep", "Poops", "Comments"
         )
+        
+        self.table_frame = ttk.Frame(self.reports_frame)
+        self.table_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Prevent table_frame from resizing itself based on content
+        self.table_frame.grid_propagate(False)
+
         self.report_table = ttk.Treeview(
-            self.reports_frame,
+            self.table_frame,
             columns=default_columns,
             show='headings'
         )
+        self.report_table.grid(row=0, column=0, sticky="nsew")
 
-        self.report_table.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.report_table.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.report_table.configure(yscrollcommand=scrollbar.set)
+
+        # Make table_frame expand
+        self.table_frame.grid_rowconfigure(0, weight=1)
+        self.table_frame.grid_columnconfigure(0, weight=1)
+
         self.report_table.bind("<Configure>", self.adjust_column_widths)
         for col in default_columns:
             self.report_table.heading(col, text=col)
@@ -162,6 +184,7 @@ class Reports(tk.Toplevel):
 
         # Set up dynamic columns
         if report_type.startswith("All Data (Day)"):
+            self.report_table.configure(style="Treeview")
             self.report_table["columns"] = (
                 "Date", "Child", "Arrival", "Departure",
                 "Main", "Dessert", "Sleep", "Poops", "Comments"
@@ -172,6 +195,7 @@ class Reports(tk.Toplevel):
 
         elif report_type == "All Data (Week)":
             # Columns: Child + weekdays of the week
+            self.report_table.configure(style="Tall.Treeview")
             self.report_table["columns"] = ["Child"] + date_range
             for col in self.report_table["columns"]:
                 if col == "Child":
@@ -262,13 +286,13 @@ class Reports(tk.Toplevel):
                     if report_type == "All Data (Week)":
                         # Combine summary info into cell (or you can customize)
                         val = (
-                            f"A:{entry.get('arrival', '-')}, "
-                            f"D:{entry.get('departure', '-')}, "
-                            f"M:{entry.get('main', '-')}, "
-                            f"DS:{entry.get('dessert', '-')}, "
-                            f"S:{entry.get('sleep', '-')}, "
-                            f"P:{entry.get('poop_count', 0)}, "
-                            f"C:{(entry.get('comments') or '')[:20]}"
+                            f"Arrival: {entry.get('arrival', '-')}\n"
+                            f"Depart: {entry.get('departure', '-')}\n"
+                            f"Main: {entry.get('main', '-')}\n"
+                            f"Dessert: {entry.get('dessert', '-')}\n"
+                            f"Sleep: {entry.get('sleep', '-')}\n"
+                            f"Poops: {entry.get('poop_count', 0)}\n"
+                            f"Comment: {(entry.get('comments') or '')[:30]}"
                         )
                     elif report_type == "Meals (Week)":
                         val = f"{entry.get('main', '-')}, {entry.get('dessert', '-')}"
@@ -284,7 +308,7 @@ class Reports(tk.Toplevel):
                     row.append(val)
 
                 self.report_table.insert("", "end", values=row)
-                
+
         self.adjust_column_widths()
 
 
@@ -339,4 +363,9 @@ class Reports(tk.Toplevel):
             for col in columns:
                 pct = column_widths.get(col, 0.10)
                 self.report_table.column(col, width=int(total_width * pct), stretch=False)
+
+    def resize_table_frame(self, event=None):
+        total_height = self.winfo_height()
+        target_height = int(total_height * 0.4)  # 40% of window height
+        self.table_frame.configure(height=target_height)
 
