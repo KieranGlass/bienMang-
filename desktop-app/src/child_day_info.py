@@ -62,12 +62,12 @@ class ChildDayInfoPage(tk.Toplevel):
                 hours = minutes // 60
                 mins = minutes % 60
                 if hours == 0:
-                    label = f"{mins} mins" if mins > 0 else "0"
+                    label = f"0:{mins}" if mins > 0 else "0"
                 elif mins == 0:
-                    label = f"{hours} hour" if hours == 1 else f"{hours} hours"
+                    label = f"{hours}:00" if hours == 1 else f"{hours}:00"
                 else:
-                    hour_label = f"{hours} hour" if hours == 1 else f"{hours} hours"
-                    label = f"{hour_label} {mins} mins"
+                    hour_label = f"{hours}" if hours == 1 else f"{hours}"
+                    label = f"{hour_label}:{mins}"
                 durations.append(label)
 
             self.title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20), sticky="n")

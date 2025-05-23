@@ -91,9 +91,12 @@ def open_day_info(parent_window, root_app, date_str, day_info_class):
     parent_window.destroy()
     day_info_window.grab_set()
     
-def get_week_dates(start_date_str):
-    start = datetime.strptime(start_date_str, "%Y-%m-%d")
-    return [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
+def get_week_dates(selected_date_str):
+    selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d")
+    # weekday(): Monday=0, Sunday=6
+    monday = selected_date - timedelta(days=selected_date.weekday())  # find Monday of that week
+    
+    return [(monday + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
 
 def get_month_dates(start_date_str):
     start = datetime.strptime(start_date_str, "%Y-%m-%d")
