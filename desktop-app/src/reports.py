@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 from utils import calendar_utils, clock_utils, navigation_utils
-from utils.db_utils import children_db_utils, common_db_utils, child_day_info_utils
+from utils.db_utils import common_db_utils, child_day_info_utils
 
 import tkinter as tk
 from tkinter import ttk
@@ -81,6 +81,9 @@ class Reports(tk.Toplevel):
         style.configure("Treeview", rowheight=25)  # default
         style.configure("Tall.Treeview", rowheight=120)
 
+        # Row striping
+        style.map("Treeview", background=[('selected', '#d9d9d9')])
+
         # === Report Table ===
         default_columns = (
             "Date", "Child", "Arrival", "Departure",
@@ -99,6 +102,9 @@ class Reports(tk.Toplevel):
             show='headings'
         )
         self.report_table.grid(row=0, column=0, sticky="nsew")
+
+        self.report_table.tag_configure("evenrow", background="#f0f0f0")
+        self.report_table.tag_configure("oddrow", background="#ffffff")
 
         # Scrollbar
         scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.report_table.yview)
@@ -138,6 +144,12 @@ class Reports(tk.Toplevel):
                 lambda val: setattr(self, "disabled_weekends", val)
             )
         )
+
+        d = self.calendar.selection_get()
+        dt = clock_utils.format_title_date(d)
+
+        self.date_label = tk.Label(controls_frame, text=f"Selected Date: {dt}")
+        self.date_label.grid(row=0, column=3, padx=10)
 
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
@@ -232,7 +244,8 @@ class Reports(tk.Toplevel):
                         entry.get("poop_count", 0),
                         (entry.get("comments") or "")[:50]
                     )
-                    self.report_table.insert("", "end", values=row)
+                    tag = "evenrow" if len(self.report_table.get_children()) % 2 == 0 else "oddrow"
+                    self.report_table.insert("", "end", values=row, tags=(tag,))
 
             elif "Week" in report_type:
                 entries = child_day_info_utils.get_data_for_dates(child_id, date_range)
@@ -290,10 +303,10 @@ class Reports(tk.Toplevel):
 
                         row.append(val)
 
-                self.report_table.insert("", "end", values=row)
+                tag = "evenrow" if len(self.report_table.get_children()) % 2 == 0 else "oddrow"
+                self.report_table.insert("", "end", values=row, tags=(tag,))
 
         self.adjust_column_widths()
-
 
     def export_report(self):
         import csv
@@ -350,6 +363,11 @@ class Reports(tk.Toplevel):
                 else:
                     pct = per_col_pct
                 self.report_table.column(col, width=int(total_width * pct), stretch=False)
+
+        d = self.calendar.selection_get()
+        dt = clock_utils.format_title_date(d)
+
+        self.date_label.config(text=f"Selected Date: {dt}")
 
     def resize_table_frame(self, event=None):
         total_height = self.winfo_height()

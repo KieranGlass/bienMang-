@@ -28,3 +28,13 @@ def generate_time_slots(start_time="07:30", end_time="18:00", interval=15):
         start += timedelta(minutes=interval)
     
     return time_slots
+
+def format_title_date(date_input):
+    if isinstance(date_input, str):
+        dt = datetime.strptime(date_input, "%Y-%m-%d")
+    else:
+        dt = datetime.combine(date_input, datetime.min.time())  # safe for datetime.date
+
+    day = dt.day
+    suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+    return dt.strftime(f"%A {day}{suffix} %B")
