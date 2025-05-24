@@ -134,7 +134,7 @@ def get_data_for_dates(child_id, date_list):
     for date in date_list:
         cursor.execute("""
             SELECT 
-                date, actual_arrival, actual_finish, main, dessert,
+                date, actual_arrival, actual_finish, starter, main, dessert,
                 pooped, poop_count, sleep_duration, comments
             FROM child_day_info
             WHERE child_id = ? AND date = ?
@@ -146,12 +146,13 @@ def get_data_for_dates(child_id, date_list):
                 "date": row[0],
                 "arrival": row[1],
                 "departure": row[2],
-                "main": row[3],
-                "dessert": row[4],
-                "pooped": bool(row[5]),
-                "poop_count": row[6],
-                "sleep": row[7],
-                "comments": row[8]
+                "starter": row[3],
+                "main": row[4],
+                "dessert": row[5],
+                "pooped": bool(row[6]),
+                "poop_count": row[7],
+                "sleep": row[8],
+                "comments": row[9]
             })
 
     conn.close()

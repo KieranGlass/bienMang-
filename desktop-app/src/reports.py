@@ -79,7 +79,8 @@ class Reports(tk.Toplevel):
 
         style = ttk.Style()
         style.configure("Treeview", rowheight=25)  # default
-        style.configure("Tall.Treeview", rowheight=120)
+        style.configure("Mid.Treeview", rowheight=50)
+        style.configure("Tall.Treeview", rowheight=140)
 
         # Row striping
         style.map("Treeview", background=[('selected', '#d9d9d9')])
@@ -162,6 +163,16 @@ class Reports(tk.Toplevel):
 
 
     def generate_report(self):
+
+        groups_with_starter = {"grands", "moyens"}
+
+        slider_word_map = {
+            1: "Nothing",
+            2: "A Little",
+            3: "Okay",
+            4: "Good",
+            5: "Excellent"
+        }
         # Clear existing table data
         self.report_table.delete(*self.report_table.get_children())
 
@@ -181,11 +192,12 @@ class Reports(tk.Toplevel):
         # Set up dynamic columns
         if report_type.startswith("All Data (Day)"):
             self.report_table.configure(style="Treeview")
-            self.report_table["columns"] = (
-                "Child", "Arrival", "Departure",
-                "Main", "Dessert", "Sleep", "Poops", "Comments"
-            )
-            for col in self.report_table["columns"]:
+            columns = ["Child", "Arrival", "Departure"]
+            if any((child[5] or "").lower() in groups_with_starter for child in common_db_utils.get_all_children()):
+                columns.append("Starter")
+            columns += ["Main", "Dessert", "Sleep", "Poops", "Comments"]
+            self.report_table["columns"] = columns
+            for col in columns:
                 self.report_table.heading(col, text=col)
 
         elif report_type == "All Data (Week)":
@@ -199,7 +211,19 @@ class Reports(tk.Toplevel):
                     label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
                     self.report_table.heading(col, text=label)
 
-        elif report_type in {"Meals (Week)", "Sleep (Week)", "Toileting (Week)", "Comments (Week)"}:
+        elif report_type in {"Sleep (Week)", "Toileting (Week)", "Comments (Week)"}:
+            self.report_table.configure(style="Treeview")
+            self.report_table["columns"] = ["Child"] + date_range
+            for col in self.report_table["columns"]:
+                if col == "Child":
+                    self.report_table.heading(col, text="Child")
+                else:
+                    dt = datetime.strptime(col, "%Y-%m-%d")
+                    label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
+                    self.report_table.heading(col, text=label)
+
+        elif report_type in {"Meals (Week)"}:
+            self.report_table.configure(style="Mid.Treeview")
             self.report_table["columns"] = ["Child"] + date_range
             for col in self.report_table["columns"]:
                 if col == "Child":
@@ -210,6 +234,7 @@ class Reports(tk.Toplevel):
                     self.report_table.heading(col, text=label)
 
         elif report_type == "Hours (Week)":
+            self.report_table.configure(style="Treeview")
             self.report_table["columns"] = ["Child"] + date_range + ["Total"]
             for col in self.report_table["columns"]:
                 if col == "Child":
@@ -234,16 +259,48 @@ class Reports(tk.Toplevel):
             if report_type == "All Data (Day)":
                 entries = child_day_info_utils.get_data_for_dates(child_id, date_range)
                 for entry in entries:
-                    row = (
+                    main_raw = entry.get("main")
+                    main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+
+                    dessert_raw = entry.get("dessert")
+                    dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+
+                    child_group = (child[5] or "").lower()
+
+                    starter = "-"
+
+                    if child_group in groups_with_starter:
+                        starter_raw = entry.get("starter")
+                        starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+
+                    main_raw = entry.get("main")
+                    main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+
+                    dessert_raw = entry.get("dessert")
+                    dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+
+                    base_row = [
                         full_name,
                         entry.get("arrival", "-"),
-                        entry.get("departure", "-"),
-                        entry.get("main", "-"),
-                        entry.get("dessert", "-"),
+                        entry.get("departure", "-")
+                    ]
+
+                    if "Starter" in self.report_table["columns"]:
+                        if child_group in groups_with_starter:
+                            base_row.append(starter)
+                        else:
+                            base_row.append("-")
+
+                    base_row.extend([
+                        main,
+                        dessert,
                         entry.get("sleep", "-"),
                         entry.get("poop_count", 0),
                         (entry.get("comments") or "")[:50]
-                    )
+                    ])
+
+                    row = tuple(base_row)
+
                     tag = "evenrow" if len(self.report_table.get_children()) % 2 == 0 else "oddrow"
                     self.report_table.insert("", "end", values=row, tags=(tag,))
 
@@ -281,17 +338,58 @@ class Reports(tk.Toplevel):
                         entry = entry_map.get(date_str, {})
 
                         if report_type == "All Data (Week)":
-                            val = (
-                                f"Arrival: {entry.get('arrival', '-')}\n"
-                                f"Depart: {entry.get('departure', '-')}\n"
-                                f"Main: {entry.get('main', '-')}\n"
-                                f"Dessert: {entry.get('dessert', '-')}\n"
-                                f"Sleep: {entry.get('sleep', '-')}\n"
-                                f"Poops: {entry.get('poop_count', 0)}\n"
-                                f"Comment: {(entry.get('comments') or '')[:30]}"
-                            )
+                            main_raw = entry.get("main")
+                            main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+
+                            dessert_raw = entry.get("dessert")
+                            dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+
+                            starter = "-"
+                            if (child[5] or "").lower() in groups_with_starter:
+                                starter_raw = entry.get("starter")
+                                starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+
+                            val_lines = [
+                                f"Arrival: {entry.get('arrival', '-')}",
+                                f"Depart: {entry.get('departure', '-')}"
+                            ]
+
+                            if (child[5] or "").lower() in groups_with_starter:
+                                starter_raw = entry.get("starter")
+                                starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+                                val_lines.append(f"Starter: {starter}")
+
+                            main_raw = entry.get("main")
+                            main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                            val_lines.append(f"Main: {main}")
+
+                            dessert_raw = entry.get("dessert")
+                            dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                            val_lines.append(f"Dessert: {dessert}")
+
+                            val_lines.append(f"Sleep: {entry.get('sleep', '-')}")
+                            val_lines.append(f"Poops: {entry.get('poop_count', 0)}")
+                            val_lines.append(f"Comment: {(entry.get('comments') or '')[:30]}")
+
+                            val = "\n".join(val_lines)
+
                         elif report_type == "Meals (Week)":
-                            val = f"{entry.get('main', '-')}, {entry.get('dessert', '-')}"
+                            meal_parts = []
+                            if (child[5] or "").lower() in groups_with_starter:
+                                starter_raw = entry.get("starter")
+                                starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+                                meal_parts.append(starter)
+
+                            main_raw = entry.get("main")
+                            main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                            meal_parts.append(main)
+
+                            dessert_raw = entry.get("dessert")
+                            dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                            meal_parts.append(dessert)
+
+                            val = "\n".join(meal_parts)
+
                         elif report_type == "Sleep (Week)":
                             val = entry.get('sleep', '-')
                         elif report_type == "Toileting (Week)":
