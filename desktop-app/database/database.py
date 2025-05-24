@@ -26,14 +26,16 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                is_admin INTEGER DEFAULT 0,
+                is_active INTEGER DEFAULT 1
             )
             ''')
 
             # Insert a user (for development purposes)
             cursor.execute('''
             INSERT OR IGNORE INTO users (username, password)
-                VALUES ('master', '1')
+                VALUES ('master', '1', 1, 1)
             ''')
 
             # Create the children table

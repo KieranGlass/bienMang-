@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from utils import calendar_utils, clock_utils, navigation_utils
+from utils import calendar_utils, clock_utils, navigation_utils, comms_utils
 from utils.db_utils import common_db_utils, child_day_info_utils
 
 import tkinter as tk
@@ -68,13 +68,19 @@ class Reports(tk.Toplevel):
         generate_button = ttk.Button(controls_frame, text="Preview Report", command=self.generate_report)
         generate_button.grid(row=0, column=2, padx=10)
 
-        self.publish_button = tk.Button(controls_frame, text="Publish to Parents", command=self.publish_report)
+        style = ttk.Style()
+        style.configure("Blue.TButton", background="#2196F3", foreground="white")
+        style.map("Blue.TButton",
+            background=[("active", "#1976D2")])
+
+        self.publish_button = ttk.Button(controls_frame, text="Publish Daily Report", style="Blue.TButton",
+                                command=self.publish_report)
         self.publish_button.grid(row=0, column=4, pady=10, padx=10)
 
-        export_button = ttk.Button(controls_frame, text="Export", command=self.export_report)
+        export_button = ttk.Button(controls_frame, text="Export", style="Blue.TButton", command=self.export_report)
         export_button.grid(row=0, column=5)
 
-        print_button = ttk.Button(controls_frame, text="Print", command=self.print_report)
+        print_button = ttk.Button(controls_frame, text="Print", style="Blue.TButton", command=self.print_report)
         print_button.grid(row=0, column=6, padx=10)
 
         style = ttk.Style()
@@ -166,7 +172,7 @@ class Reports(tk.Toplevel):
 
         groups_with_starter = {"grands", "moyens"}
 
-        slider_word_map = {
+        self.slider_word_map = {
             1: "Nothing",
             2: "A Little",
             3: "Okay",
@@ -260,10 +266,10 @@ class Reports(tk.Toplevel):
                 entries = child_day_info_utils.get_data_for_dates(child_id, date_range)
                 for entry in entries:
                     main_raw = entry.get("main")
-                    main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                    main = self.slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
 
                     dessert_raw = entry.get("dessert")
-                    dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                    dessert = self.slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
 
                     child_group = (child[5] or "").lower()
 
@@ -271,13 +277,13 @@ class Reports(tk.Toplevel):
 
                     if child_group in groups_with_starter:
                         starter_raw = entry.get("starter")
-                        starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+                        starter = self.slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
 
                     main_raw = entry.get("main")
-                    main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                    main = self.slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
 
                     dessert_raw = entry.get("dessert")
-                    dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                    dessert = self.slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
 
                     base_row = [
                         full_name,
@@ -339,15 +345,15 @@ class Reports(tk.Toplevel):
 
                         if report_type == "All Data (Week)":
                             main_raw = entry.get("main")
-                            main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                            main = self.slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
 
                             dessert_raw = entry.get("dessert")
-                            dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                            dessert = self.slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
 
                             starter = "-"
                             if (child[5] or "").lower() in groups_with_starter:
                                 starter_raw = entry.get("starter")
-                                starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+                                starter = self.slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
 
                             val_lines = [
                                 f"Arrival: {entry.get('arrival', '-')}",
@@ -356,15 +362,15 @@ class Reports(tk.Toplevel):
 
                             if (child[5] or "").lower() in groups_with_starter:
                                 starter_raw = entry.get("starter")
-                                starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+                                starter = self.slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
                                 val_lines.append(f"Starter: {starter}")
 
                             main_raw = entry.get("main")
-                            main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                            main = self.slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
                             val_lines.append(f"Main: {main}")
 
                             dessert_raw = entry.get("dessert")
-                            dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                            dessert = self.slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
                             val_lines.append(f"Dessert: {dessert}")
 
                             val_lines.append(f"Sleep: {entry.get('sleep', '-')}")
@@ -377,15 +383,15 @@ class Reports(tk.Toplevel):
                             meal_parts = []
                             if (child[5] or "").lower() in groups_with_starter:
                                 starter_raw = entry.get("starter")
-                                starter = slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
+                                starter = self.slider_word_map.get(int(starter_raw), "-") if starter_raw is not None else "-"
                                 meal_parts.append(starter)
 
                             main_raw = entry.get("main")
-                            main = slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
+                            main = self.slider_word_map.get(int(main_raw), "-") if main_raw is not None else "-"
                             meal_parts.append(main)
 
                             dessert_raw = entry.get("dessert")
-                            dessert = slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
+                            dessert = self.slider_word_map.get(int(dessert_raw), "-") if dessert_raw is not None else "-"
                             meal_parts.append(dessert)
 
                             val = "\n".join(meal_parts)
@@ -422,7 +428,20 @@ class Reports(tk.Toplevel):
                     writer.writerow(row)
 
     def publish_report(self):
-        print("Publishing!!!")
+        groups_with_starter = {"grands", "moyens"}
+        selected_date = self.calendar.get_date()
+        for child in common_db_utils.get_all_children():
+            child_id = child[0]
+            full_name = f"{child[1]} {child[3]}"
+            email = "kieranglass23@gmail.com"
+            print(f"{email}")
+            group = (child[5] or "").lower()
+
+            entries = child_day_info_utils.get_data_for_dates(child_id, [selected_date])
+            if entries:
+                entry = entries[0]
+                report_text = comms_utils.generate_plaintext_day_report(self, full_name, entry, include_starter=(group in groups_with_starter))
+                comms_utils.send_email(email, f"Nursery Report for {selected_date}", report_text)
 
     def print_report(self):
         print("Printing!!!")
