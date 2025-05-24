@@ -56,7 +56,8 @@ class Reports(tk.Toplevel):
                 "Meals (Week)",
                 "Sleep (Week)",
                 "Toileting (Week)",
-                "Comments (Week)"
+                "Comments (Week)",
+                "Hours (Week)"
             ],
             state="readonly",
             width=25
@@ -141,22 +142,6 @@ class Reports(tk.Toplevel):
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 
-        # Select Button (optional trigger)
-        select_button_style = ttk.Style()
-        select_button_style.configure(
-            "Select.TButton",
-            background="#add8e6",
-            foreground="black",
-            borderwidth=1,
-            focusthickness=3,
-            focuscolor='none',
-        )
-
-        select_button_style.map("Select.TButton", background=[("active", "#87ceeb")])
-
-        select_button = ttk.Button(self.calendar_frame, text="Select", style="Select.TButton")
-        select_button.grid(row=1, column=0, pady=10)
-
         # Clock
         self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
 
@@ -165,7 +150,6 @@ class Reports(tk.Toplevel):
 
 
     def generate_report(self):
-
         # Clear existing table data
         self.report_table.delete(*self.report_table.get_children())
 
@@ -186,15 +170,13 @@ class Reports(tk.Toplevel):
         if report_type.startswith("All Data (Day)"):
             self.report_table.configure(style="Treeview")
             self.report_table["columns"] = (
-                "Date", "Child", "Arrival", "Departure",
+                "Child", "Arrival", "Departure",
                 "Main", "Dessert", "Sleep", "Poops", "Comments"
             )
-
             for col in self.report_table["columns"]:
                 self.report_table.heading(col, text=col)
 
         elif report_type == "All Data (Week)":
-            # Columns: Child + weekdays of the week
             self.report_table.configure(style="Tall.Treeview")
             self.report_table["columns"] = ["Child"] + date_range
             for col in self.report_table["columns"]:
@@ -205,7 +187,7 @@ class Reports(tk.Toplevel):
                     label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
                     self.report_table.heading(col, text=label)
 
-        elif report_type == "Meals (Week)":
+        elif report_type in {"Meals (Week)", "Sleep (Week)", "Toileting (Week)", "Comments (Week)"}:
             self.report_table["columns"] = ["Child"] + date_range
             for col in self.report_table["columns"]:
                 if col == "Child":
@@ -215,42 +197,24 @@ class Reports(tk.Toplevel):
                     label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
                     self.report_table.heading(col, text=label)
 
-        elif report_type == "Sleep (Week)":
-            self.report_table["columns"] = ["Child"] + date_range
+        elif report_type == "Hours (Week)":
+            self.report_table["columns"] = ["Child"] + date_range + ["Total"]
             for col in self.report_table["columns"]:
                 if col == "Child":
                     self.report_table.heading(col, text="Child")
+                elif col == "Total":
+                    self.report_table.heading(col, text="Total")
                 else:
                     dt = datetime.strptime(col, "%Y-%m-%d")
                     label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
                     self.report_table.heading(col, text=label)
 
-        elif report_type == "Toileting (Week)":
-            self.report_table["columns"] = ["Child"] + date_range
-            for col in self.report_table["columns"]:
-                if col == "Child":
-                    self.report_table.heading(col, text="Child")
-                else:
-                    dt = datetime.strptime(col, "%Y-%m-%d")
-                    label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
-                    self.report_table.heading(col, text=label)
-
-        elif report_type == "Comments (Week)":
-            self.report_table["columns"] = ["Child"] + date_range
-            for col in self.report_table["columns"]:
-                if col == "Child":
-                    self.report_table.heading(col, text="Child")
-                else:
-                    dt = datetime.strptime(col, "%Y-%m-%d")
-                    label = dt.strftime("%a %-d %b") if os.name != 'nt' else dt.strftime("%a %#d %b")
-                    self.report_table.heading(col, text=label)
-                
         else:
-            # Unknown report type - clear columns
+            # Unknown report type
             self.report_table["columns"] = ()
             return
 
-            # Fetch and display data
+        # Fetch and display data
         for child in common_db_utils.get_all_children():
             child_id = child[0]
             full_name = f"{child[1]} {child[3]}"
@@ -259,7 +223,6 @@ class Reports(tk.Toplevel):
                 entries = child_day_info_utils.get_data_for_dates(child_id, date_range)
                 for entry in entries:
                     row = (
-                        entry["date"],
                         full_name,
                         entry.get("arrival", "-"),
                         entry.get("departure", "-"),
@@ -272,40 +235,60 @@ class Reports(tk.Toplevel):
                     self.report_table.insert("", "end", values=row)
 
             elif "Week" in report_type:
-                # Weekly reports have one row per child,
-                # columns are weekdays in date_range (except Child at index 0)
-                # Gather data per date for that child
                 entries = child_day_info_utils.get_data_for_dates(child_id, date_range)
-                # Map date -> entry
                 entry_map = {e["date"]: e for e in entries}
-
                 row = [full_name]
-                for date_str in date_range:
-                    entry = entry_map.get(date_str, {})
 
-                    if report_type == "All Data (Week)":
-                        # Combine summary info into cell (or you can customize)
-                        val = (
-                            f"Arrival: {entry.get('arrival', '-')}\n"
-                            f"Depart: {entry.get('departure', '-')}\n"
-                            f"Main: {entry.get('main', '-')}\n"
-                            f"Dessert: {entry.get('dessert', '-')}\n"
-                            f"Sleep: {entry.get('sleep', '-')}\n"
-                            f"Poops: {entry.get('poop_count', 0)}\n"
-                            f"Comment: {(entry.get('comments') or '')[:30]}"
-                        )
-                    elif report_type == "Meals (Week)":
-                        val = f"{entry.get('main', '-')}, {entry.get('dessert', '-')}"
-                    elif report_type == "Sleep (Week)":
-                        val = entry.get('sleep', '-')
-                    elif report_type == "Toileting (Week)":
-                        val = str(entry.get('poop_count', 0))
-                    elif report_type == "Comments (Week)":
-                        val = (entry.get('comments') or '')[:50]
-                    else:
-                        val = ""
+                if report_type == "Hours (Week)":
+                    total_hours = 0.0
+                    for date_str in date_range:
+                        entry = entry_map.get(date_str, {})
+                        arrival_str = entry.get("arrival")
+                        departure_str = entry.get("departure")
 
-                    row.append(val)
+                        if arrival_str and departure_str:
+                            try:
+                                arrival = datetime.strptime(arrival_str, "%H:%M")
+                                departure = datetime.strptime(departure_str, "%H:%M")
+                                hours = (departure - arrival).total_seconds() / 3600.0
+                                if hours < 0:
+                                    hours = 0
+                            except Exception:
+                                hours = 0
+                        else:
+                            hours = 0
+
+                        total_hours += hours
+                        row.append(f"{hours:.2f}")
+
+                    row.append(f"{total_hours:.2f}")
+
+                else:
+                    for date_str in date_range:
+                        entry = entry_map.get(date_str, {})
+
+                        if report_type == "All Data (Week)":
+                            val = (
+                                f"Arrival: {entry.get('arrival', '-')}\n"
+                                f"Depart: {entry.get('departure', '-')}\n"
+                                f"Main: {entry.get('main', '-')}\n"
+                                f"Dessert: {entry.get('dessert', '-')}\n"
+                                f"Sleep: {entry.get('sleep', '-')}\n"
+                                f"Poops: {entry.get('poop_count', 0)}\n"
+                                f"Comment: {(entry.get('comments') or '')[:30]}"
+                            )
+                        elif report_type == "Meals (Week)":
+                            val = f"{entry.get('main', '-')}, {entry.get('dessert', '-')}"
+                        elif report_type == "Sleep (Week)":
+                            val = entry.get('sleep', '-')
+                        elif report_type == "Toileting (Week)":
+                            val = str(entry.get('poop_count', 0))
+                        elif report_type == "Comments (Week)":
+                            val = (entry.get('comments') or '')[:50]
+                        else:
+                            val = ""
+
+                        row.append(val)
 
                 self.report_table.insert("", "end", values=row)
 
@@ -340,28 +323,32 @@ class Reports(tk.Toplevel):
 
         columns = self.report_table["columns"]
 
-        if "Child" in columns and len(columns) > 2:
-            # Weekly layout
-            self.report_table.column("Child", width=int(total_width * 0.2), stretch=False)
+        if "Child" in columns and len(columns) > 2 and "Comments" not in columns:
+            # Weekly layout without "Comments" column
+            self.report_table.column("Child", width=int(total_width * 0.15), stretch=False)
             day_width = int(total_width * 0.8 / (len(columns) - 1))
             for col in columns:
                 if col != "Child":
                     self.report_table.column(col, width=day_width, stretch=False)
         else:
-            # Fallback to named percentage layout
-            column_widths = {
-                "Comments": 0.30,
-                "Child": 0.20,
-                "Date": 0.10,
-                "Arrival": 0.10,
-                "Departure": 0.10,
-                "Main": 0.08,
-                "Dessert": 0.08,
-                "Sleep": 0.10,
-                "Poops": 0.07,
+            # Distribute based on specific proportions
+            static_widths = {
+                "Child": 0.15,
+                "Comments": 0.35
             }
+
+            # Calculate remaining width for other columns
+            remaining_cols = [col for col in columns if col not in static_widths]
+            num_remaining = len(remaining_cols)
+            remaining_width_pct = 0.45
+
+            per_col_pct = remaining_width_pct / num_remaining if num_remaining > 0 else 0
+
             for col in columns:
-                pct = column_widths.get(col, 0.10)
+                if col in static_widths:
+                    pct = static_widths[col]
+                else:
+                    pct = per_col_pct
                 self.report_table.column(col, width=int(total_width * pct), stretch=False)
 
     def resize_table_frame(self, event=None):
