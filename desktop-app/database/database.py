@@ -34,7 +34,7 @@ def create_tables():
 
             # Insert a user (for development purposes)
             cursor.execute('''
-            INSERT OR IGNORE INTO users (username, password)
+            INSERT OR IGNORE INTO users (username, password, is_admin, is_active)
                 VALUES ('master', '1', 1, 1)
             ''')
 

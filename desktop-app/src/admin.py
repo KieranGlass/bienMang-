@@ -1,8 +1,17 @@
-import tkinter as tk
-from tkinter import ttk
+import re
 
-from utils import clock_utils, navigation_utils
-from utils.db_utils import admin_db_utils
+import tkinter as tk
+from tkinter import ttk, messagebox
+from tkcalendar import DateEntry
+
+from utils import navigation_utils, clock_utils
+from utils.db_utils import common_db_utils, children_db_utils, admin_db_utils
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from datetime import datetime, timedelta
+
+from PIL import Image, ImageTk
 
 class Setting(tk.Toplevel):
     def __init__(self, parent, root_app):
@@ -32,7 +41,7 @@ class Setting(tk.Toplevel):
         # Admin Setup Section
         admin_frame = self.create_section(main_frame, "Admin Setup", 0)
         ttk.Label(admin_frame, text="Replace master user with a secure admin account.").grid(row=0, column=0, sticky="w")
-        ttk.Button(admin_frame, text="Create Admin User").grid(row=1, column=0, sticky="w")
+        ttk.Button(admin_frame, text="Create Admin User", command=self.create_admin_user).grid(row=1, column=0, sticky="w")
 
         # Staff Management Section
         staff_frame = self.create_section(main_frame, "Staff Accounts", 1)
@@ -76,4 +85,15 @@ class Setting(tk.Toplevel):
         password_entry = ttk.Entry(popup, show="*")
         password_entry.grid(row=1, column=1, padx=10, pady=5)
 
-        ttk.Button(popup, text="Create", command=admin_db_utils.submit(self)).grid(row=2, column=0, columnspan=2, pady=10)
+        def handle_create():
+            username = username_entry.get().strip()
+            password = password_entry.get().strip()
+            success, msg = admin_db_utils.submit_admin(username, password)
+            if success:
+                tk.messagebox.showinfo("Success", msg)
+                popup.destroy()
+            else:
+                tk.messagebox.showerror("Error", msg)
+                #TODO user created admin but master not removed as admin, and login doesnt verify if is admin anyeway
+
+        ttk.Button(popup, text="Create", command=handle_create).grid(row=2, column=0, columnspan=2, pady=10)
