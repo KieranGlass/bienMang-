@@ -61,12 +61,18 @@ class LoginWindow(tk.Toplevel):
             cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
             user = cursor.fetchone()  # Fetch the user from the database
 
+            is_admin = user[4]
+
             # Check if the user exists
             if user:
                 # User exists, proceed to the main window
-                from dashboard import Dashboard
-                self.withdraw()
-                Dashboard(self, self)  # Run the main window
+                if is_admin == 1:
+
+                    from dashboard import Dashboard
+                    self.withdraw()
+                    Dashboard(self, self)  # Run the main window
+                    error_label = ttk.Label(self.login_frame, text="User is not admin", foreground="red")
+                    error_label.grid(row=6, column=0)
             else:
                 #User does not exist, show an error
                 error_label = ttk.Label(self.login_frame, text="Invalid username or password", foreground="red")

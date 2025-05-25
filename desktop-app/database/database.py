@@ -27,6 +27,7 @@ def create_tables():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
+                role TEXT NOT NULL,
                 is_admin INTEGER DEFAULT 0,
                 is_active INTEGER DEFAULT 1
             )
@@ -34,8 +35,8 @@ def create_tables():
 
             # Insert a user (for development purposes)
             cursor.execute('''
-            INSERT OR IGNORE INTO users (username, password, is_admin, is_active)
-                VALUES ('master', '1', 1, 1)
+            INSERT OR IGNORE INTO users (username, password, role, is_admin, is_active)
+                VALUES ('master', '1', 'Default Admin', 1, 1)
             ''')
 
             # Create the children table
