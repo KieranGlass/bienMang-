@@ -120,8 +120,6 @@ class Registers(tk.Toplevel):
         select_button = ttk.Button(self.calendar_frame, text="Select", style="Select.TButton", command=self.show_register_for_day)
         select_button.grid(pady=10)
 
-        self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
-
     def default_register_for_day(self):
         selected_date_str = self.calendar.get_date()
 

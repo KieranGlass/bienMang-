@@ -2,12 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 
 from dashboard import Dashboard
-from login import LoginWindow
 from children import Children
 from menus import Menus
 from reports import Reports
 from registers import Registers
 from admin import Setting
+
+from session_manager import SessionManager
+from utils import clock_utils
 
 
 def create_global_sidebar(app):
@@ -25,6 +27,14 @@ def create_global_sidebar(app):
     create_sidebar_tab(sidebar_frame, "Settings", lambda: show_settings(app), 5)
     create_sidebar_tab(sidebar_frame, "Log Out", lambda: log_out(app), 6)
 
+    user = SessionManager.current_user
+
+    user_label = tk.Label(sidebar_frame, text=f"User:\n{user[1]}")
+    user_label.grid(row=7, column=0, pady=10)
+
+    time_label = clock_utils.create_clock(sidebar_frame, app)
+    time_label.grid(row=8, column=0, pady=10)
+    
     return sidebar_frame
 
 def create_sidebar_tab(frame, text, command, row):

@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import sqlite3
 
+from session_manager import SessionManager
+
 class LoginWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__()
@@ -47,41 +49,29 @@ class LoginWindow(tk.Toplevel):
         self.login_frame.grid_columnconfigure(0, weight=1)
 
     def login(self):
-        # First, check if both fields are filled in
         if self.username_entry.get() and self.password_entry.get():
-            # Get username and password input values
             username = self.username_entry.get()
             password = self.password_entry.get()
 
-            # Connect to the database
             conn = sqlite3.connect('/database/bien-manger.db')
             cursor = conn.cursor()
 
-            # Query to check if user exists with the given username and password
             cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-            user = cursor.fetchone()  # Fetch the user from the database
-
-            is_admin = user[4]
-
-            # Check if the user exists
-            if user:
-                # User exists, proceed to the main window
-                if is_admin == 1:
-
-                    from dashboard import Dashboard
-                    self.withdraw()
-                    Dashboard(self, self)  # Run the main window
-                    error_label = ttk.Label(self.login_frame, text="User is not admin", foreground="red")
-                    error_label.grid(row=6, column=0)
-            else:
-                #User does not exist, show an error
-                error_label = ttk.Label(self.login_frame, text="Invalid username or password", foreground="red")
-                error_label.grid(row=6, column=0)
-
-            # Close the database connection
+            user = cursor.fetchone()
             conn.close()
 
+            if user:
+                is_admin = user[4]
+
+                if is_admin == 1:
+                    # Import and open dashboard
+                    from dashboard import Dashboard
+                    SessionManager.current_user = user
+                    self.withdraw()
+                    Dashboard(self.parent, self)
+                else:
+                    ttk.Label(self.login_frame, text="User is not admin", foreground="red").grid(row=6, column=0)
+            else:
+                ttk.Label(self.login_frame, text="Invalid username or password", foreground="red").grid(row=6, column=0)
         else:
-            # If either username or password field is empty, show the "Please fill in both fields" message
-            error_label = ttk.Label(self.login_frame, text="Please fill in both fields", foreground="red")
-            error_label.grid(row=6, column=0)
+            ttk.Label(self.login_frame, text="Please fill in both fields", foreground="red").grid(row=6, column=0)

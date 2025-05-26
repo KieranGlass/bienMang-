@@ -161,9 +161,6 @@ class Reports(tk.Toplevel):
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 
-        # Clock
-        self.time_label = clock_utils.create_clock(self.sidebar_frame, self)
-
         self.report_type_var.set("All Data (Day)")
         self.generate_report()
 
@@ -447,6 +444,10 @@ class Reports(tk.Toplevel):
         print("Printing!!!")
 
     def adjust_column_widths(self, event=None):
+
+        if not hasattr(self, 'calendar'):
+            return
+        
         total_width = self.report_table.winfo_width()
         if total_width <= 0:
             return  # Avoid division by zero
