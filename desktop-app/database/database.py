@@ -161,6 +161,13 @@ def create_tables():
             )       
             ''')
 
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+            ''')
+
             # Commit the changes and leave the connection open for further operations
             conn.commit()
 

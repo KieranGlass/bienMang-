@@ -262,16 +262,9 @@ class Children(tk.Toplevel):
                 getattr(self, attr).delete(0, tk.END)
 
     def create_pupil_list(self):
-        # Create a style for Treeview
-        style = ttk.Style(self)
-        style.configure("Treeview",
-                    font=("Arial", 12),  # Set font size for better readability
-                    rowheight=30,        # Set row height for bigger entries
-                    padding=5)       
-        style.configure("Treeview.Heading", font=("Arial", 14, "bold"))
 
         # Add the Treeview widget to display children (Row 2, Right column)
-        self.tree = ttk.Treeview(self, columns=("Id", "First Name", "Last Name", "Year Group"), show="headings", style="Treeview")
+        self.tree = ttk.Treeview(self, columns=("Id", "First Name", "Last Name", "Year Group"), show="headings", style="ChildrenTree.Treeview")
         self.tree.grid(row=1, column=2, columnspan=1, padx=0, pady=0, sticky="nsew")
     
         # Define the headings
@@ -296,7 +289,6 @@ class Children(tk.Toplevel):
         # Add the info box in the middle column (with border)
         self.info_frame = ttk.Frame(self, relief="solid", borderwidth=2)
         self.info_frame.grid(row=0, column=2, padx=0, pady=0, sticky="nsew")
-
 
         # Configure grid to divide the info_frame into two columns and two rows
         self.info_frame.grid_rowconfigure(0, weight=1, minsize=50)  # First row will take up half of the vertical space

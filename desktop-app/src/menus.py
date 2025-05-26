@@ -69,19 +69,7 @@ class Menus(tk.Toplevel):
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 
-        select_button_style = ttk.Style()
-        select_button_style.configure(
-            "Select.TButton",
-            background="#add8e6",
-            foreground="black",
-            borderwidth=1,
-            focusthickness=3,
-            focuscolor='none',
-        )
-        select_button_style.map("Select.TButton",
-                background=[("active", "#87ceeb")])
-
-        select_button = ttk.Button(self.calendar_frame, text="Select", style="Select.TButton", command=self.show_menu_for_day)
+        select_button = ttk.Button(self.calendar_frame, text="Select", style="MenuSelect.TButton", command=self.show_menu_for_day)
         select_button.grid(pady=10)
 
     def show_menu_for_day(self):

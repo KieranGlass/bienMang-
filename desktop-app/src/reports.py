@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from utils import calendar_utils, clock_utils, navigation_utils, comms_utils
+from utils import calendar_utils, clock_utils, navigation_utils, comms_utils, styles
 from utils.db_utils import common_db_utils, child_day_info_utils
 
 import tkinter as tk
@@ -65,31 +65,17 @@ class Reports(tk.Toplevel):
         report_type_combo.grid(row=0, column=1, padx=(0, 10), sticky="w")
         report_type_combo.current(0)  # Default: "All Data (Day)")
 
-        generate_button = ttk.Button(controls_frame, text="Preview Report", command=self.generate_report)
+        generate_button = ttk.Button(controls_frame, text="Preview Report", style="ReportGreen.TButton", command=self.generate_report)
         generate_button.grid(row=0, column=2, padx=10)
 
-        style = ttk.Style()
-        style.configure("Blue.TButton", background="#2196F3", foreground="white")
-        style.map("Blue.TButton",
-            background=[("active", "#1976D2")])
-
-        self.publish_button = ttk.Button(controls_frame, text="Publish Daily Report", style="Blue.TButton",
-                                command=self.publish_report)
+        self.publish_button = ttk.Button(controls_frame, text="Publish Daily Report", style="ReportBlue.TButton", command=self.publish_report)
         self.publish_button.grid(row=0, column=4, pady=10, padx=10)
 
-        export_button = ttk.Button(controls_frame, text="Export", style="Blue.TButton", command=self.export_report)
+        export_button = ttk.Button(controls_frame, text="Export", style="ReportBlue.TButton", command=self.export_report)
         export_button.grid(row=0, column=5)
 
-        print_button = ttk.Button(controls_frame, text="Print", style="Blue.TButton", command=self.print_report)
+        print_button = ttk.Button(controls_frame, text="Print", style="ReportBlue.TButton", command=self.print_report)
         print_button.grid(row=0, column=6, padx=10)
-
-        style = ttk.Style()
-        style.configure("Treeview", rowheight=25)  # default
-        style.configure("Mid.Treeview", rowheight=50)
-        style.configure("Tall.Treeview", rowheight=140)
-
-        # Row striping
-        style.map("Treeview", background=[('selected', '#d9d9d9')])
 
         # === Report Table ===
         default_columns = (
@@ -163,7 +149,6 @@ class Reports(tk.Toplevel):
 
         self.report_type_var.set("All Data (Day)")
         self.generate_report()
-
 
     def generate_report(self):
 

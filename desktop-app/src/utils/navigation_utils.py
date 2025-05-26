@@ -42,19 +42,7 @@ def create_sidebar_tab(frame, text, command, row):
     tab_button = ttk.Button(frame, text=text, command=command)
     tab_button.grid(row=row, column=0, padx=10, pady=5, sticky="w")
 
-    style = ttk.Style()
-    style.configure(
-        "Custom.TButton",
-        background="#1e3a5f",
-        foreground="white",
-        font=("Arial", 12, "bold"),
-        relief="raised",
-        padding=(10, 5),
-        borderwidth=2,
-        anchor="center",  
-    )
-    style.map("Custom.TButton", background=[("active", "#2c4b7f")])
-    tab_button.configure(style="Custom.TButton")
+    tab_button.configure(style="Sidebar.TButton")
 
 def show_dashboard(self):
     print("Showing Dashboard")

@@ -104,20 +104,7 @@ class Registers(tk.Toplevel):
         calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.calendar, self.calendar.get_displayed_month)
 
-        select_button_style = ttk.Style()
-        select_button_style.configure(
-            "Select.TButton",
-            background="#add8e6",
-            foreground="black",
-            borderwidth=1,
-            focusthickness=3,
-            focuscolor='none',
-        )
-        select_button_style.map("Select.TButton",
-                background=[("active", "#87ceeb")])
-
-
-        select_button = ttk.Button(self.calendar_frame, text="Select", style="Select.TButton", command=self.show_register_for_day)
+        select_button = ttk.Button(self.calendar_frame, text="Select", style="RegisterSelect.TButton", command=self.show_register_for_day)
         select_button.grid(pady=10)
 
     def default_register_for_day(self):
@@ -213,44 +200,20 @@ class Registers(tk.Toplevel):
             child_end_label = tk.Label(self.scrollable_register_frame, text=adjusted_end, bg="#f4f4f4", relief="solid", padx=5)
             child_end_label.grid(row=i, column=2, padx=10, sticky="ew")
 
-            adjust_button_style = ttk.Style()
-
-            adjust_button_style.configure("LightBlue.TButton",
-                background="#add8e6",
-                foreground="black",
-                borderwidth=1,
-                focusthickness=3,
-                focuscolor='none')
-            
-            adjust_button_style.map("LightBlue.TButton",
-                background=[("active", "#87ceeb")]) 
-
             adjust_button = ttk.Button(
                 self.scrollable_register_frame,
                 text="Adjust",
-                style="LightBlue.TButton",
+                style="RegisterAdjust.TButton",
                 # Saves the pupil varaibles for each iteration, for passing info to adjust schedule
                 command=lambda id=child_id, date=selected_date, start=adjusted_start, end=adjusted_end,
                 name=first_name + "" + last_name: self.adjust_schedule(id, date, start, end, name)
             )
             adjust_button.grid(row=i, column=3, padx=10, sticky="ew")
 
-            absent_button_style = ttk.Style()
-
-            absent_button_style.configure("LightPink.TButton",
-                background="#ffb6c1",
-                foreground="black",
-                borderwidth=1,
-                focusthickness=3,
-                focuscolor='none')
-            
-            absent_button_style.map("LightPink.TButton",
-                background=[("active", "#ff69b4")]) 
-
             absent_button = ttk.Button(
                 self.scrollable_register_frame,
                 text="Absent",
-                style="LightPink.TButton",
+                style="RegisterAbsent.TButton",
                 
                 command=lambda id=child_id, date=selected_date: self.mark_absent(id, date)
             )
@@ -261,8 +224,6 @@ class Registers(tk.Toplevel):
 
     def update_day_label(self, date):
         """ Update the label in the middle column to show the selected day """
-        from datetime import datetime
-        
         
         # Format the selected date into the desired format (e.g., "Monday, 2nd June 2025")
         day_name = date.strftime("%A")
@@ -272,7 +233,6 @@ class Registers(tk.Toplevel):
         month_name = date.strftime("%B")
         print(f"{month_name}")
         year = date.year
-        print(f"{year}")
         
         # Handle the suffix for the day number (e.g., 1st, 2nd, 3rd, etc.)
         suffix = 'th'
@@ -289,7 +249,6 @@ class Registers(tk.Toplevel):
         formatted_date = f"{day_name} {day_number}{suffix} {month_name} {year}"
         print(f"{formatted_date}")
 
-       
         self.day_label = tk.Label(self.scrollable_register_frame, text=formatted_date, font=("Arial", 14))
         self.day_label.grid(row=0, column=0, columnspan=2, pady=10, padx=0)
 
@@ -363,30 +322,8 @@ class Registers(tk.Toplevel):
         button_frame = ttk.Frame(container)
         button_frame.grid(row=5, column=0, pady=20, sticky="n")
 
-        cancel_button_style = ttk.Style()
-        cancel_button_style.configure(
-            "Cancel.TButton",
-            background="#f4c2c2",  # Light pink
-            foreground="black",
-            borderwidth=1
-        )
-        cancel_button_style.map("Cancel.TButton",
-            background=[("active", "#e89cae")]  # Slightly darker pink on hover
-        )
-
-        cancel_button = ttk.Button(button_frame, text="Cancel", style="Cancel.TButton", command=cancel_adjust)
+        cancel_button = ttk.Button(button_frame, text="Cancel", style="RegisterCancel.TButton", command=cancel_adjust)
         cancel_button.grid(row=0, column=0, padx=(0, 10))
-
-        save_button_style = ttk.Style()
-        save_button_style.configure(
-            "Save.TButton",
-            background="#b6e7a6",  # Light green
-            foreground="black",
-            borderwidth=1
-        )
-        save_button_style.map("Save.TButton",
-            background=[("active", "#9bd18a")]  # Slightly darker green on hover
-        )
 
         save_button = ttk.Button(button_frame, text="Save", style="Save.TButton", command=validate_and_save)
         save_button.grid(row=0, column=1)

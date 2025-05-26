@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkcalendar import Calendar
 from datetime import date
 
-from utils import calendar_utils, clock_utils, navigation_utils
+from utils import calendar_utils, clock_utils, navigation_utils, styles
 
 from login import LoginWindow
 from day_info import DayInfoPage
@@ -81,6 +81,7 @@ class Dashboard(tk.Toplevel):
 
 def main():
     root = tk.Tk()
+    styles.apply_styles()
     root.withdraw()
     login_window = LoginWindow(root)
     login_window.mainloop()

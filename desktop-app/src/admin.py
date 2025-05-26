@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import StringVar
 
 
-from utils import navigation_utils, clock_utils
+from utils import navigation_utils
 from utils.db_utils import admin_db_utils
 
 
@@ -78,10 +79,13 @@ class Setting(tk.Toplevel):
         ttk.Button(printer_frame, text="Select Printer").grid(row=1, column=0, sticky="w", pady=5)
 
         # --- Email Configuration ---
+        email_var = StringVar(value=admin_db_utils.get_setting("notification_email"))
         email_frame = self.create_section(settings_frame, "Email Configuration", 3)
         ttk.Label(email_frame, text="Set the email address used to send reports to parents.").grid(row=0, column=0, sticky="w")
-        ttk.Entry(email_frame, width=40).grid(row=1, column=0, sticky="w")
-        ttk.Button(email_frame, text="Save Email Settings").grid(row=2, column=0, sticky="w", pady=5)
+        email_entry = ttk.Entry(email_frame, width=40, textvariable=email_var)
+        email_entry.grid(row=1, column=0, sticky="w")
+        save_button = ttk.Button(email_frame, text="Save Email", command=lambda: admin_db_utils.set_email("notification_email", email_var.get()))
+        save_button.grid(row=1, column=1, padx=10)
 
         # --- Nursery Closure Days ---
         closure_frame = self.create_section(settings_frame, "Closure Days", 4)

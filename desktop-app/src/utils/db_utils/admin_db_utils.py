@@ -1,6 +1,8 @@
 import sqlite3
 from contextlib import closing
 
+from tkinter import messagebox
+
 from . import common_db_utils
 
 
@@ -51,3 +53,39 @@ def get_all_staff():
         users = cursor.fetchall()
 
     return users
+
+def get_setting(key):
+    conn = common_db_utils.get_db_connection()
+    try:
+        with closing(conn.cursor()) as cursor:
+            cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+            row = cursor.fetchone()
+            return row[0] if row else ""
+    finally:
+        conn.close()
+    
+
+def set_email(key, value):
+    try:
+        conn = common_db_utils.get_db_connection()
+        cursor = conn.cursor()
+
+        # Check if key exists
+        cursor.execute("SELECT 1 FROM settings WHERE key = ?", (key,))
+        exists = cursor.fetchone() is not None
+
+        # Insert or update
+        cursor.execute("""
+            INSERT INTO settings (key, value)
+            VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value=excluded.value
+        """, (key, value))
+        conn.commit()
+        conn.close()
+
+        if exists:
+            messagebox.showinfo("Updated", f"Email Configuration updated successfully.")
+        else:
+            messagebox.showinfo("Saved", f"Email Configuration saved successfully.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to save Email Configuration.\n\n{str(e)}")
