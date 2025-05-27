@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkinter import StringVar
 
 
@@ -69,26 +69,23 @@ class Setting(tk.Toplevel):
 
         # --- Staff Management Section ---
         staff_frame = self.create_section(settings_frame, "Staff Accounts", 1)
-        ttk.Label(staff_frame, text="Manage staff members for mobile login access.").grid(row=0, column=0, sticky="w")
-        ttk.Button(staff_frame, text="Add Staff Member", command=lambda: self.create_user(0)).grid(row=1, column=0, sticky="w", pady=5)
-        ttk.Button(staff_frame, text="Edit Staff", command=lambda: self.edit_user()).grid(row=2, column=0, sticky="w", pady=5)
-
-        # --- Printer Setup ---
-        printer_frame = self.create_section(settings_frame, "Printer Setup", 2)
-        ttk.Label(printer_frame, text="Configure your default printer for report printing.").grid(row=0, column=0, sticky="w")
-        ttk.Button(printer_frame, text="Select Printer").grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Label(staff_frame, text="Manage staff members").grid(row=0, column=0, sticky="w")
+        ttk.Button(staff_frame, text="Add User", command=lambda: self.create_user(0)).grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Edit User", command=lambda: self.edit_user()).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Delete User", command=lambda: self.delete_user()).grid(row=2, column=1, sticky="w", pady=5)
 
         # --- Email Configuration ---
         email_var = StringVar(value=admin_db_utils.get_setting("notification_email"))
-        email_frame = self.create_section(settings_frame, "Email Configuration", 3)
+        email_frame = self.create_section(settings_frame, "Email Configuration", 2)
         ttk.Label(email_frame, text="Set the email address used to send reports to parents.").grid(row=0, column=0, sticky="w")
         email_entry = ttk.Entry(email_frame, width=40, textvariable=email_var)
         email_entry.grid(row=1, column=0, sticky="w")
+
         save_button = ttk.Button(email_frame, text="Save Email", command=lambda: admin_db_utils.set_email("notification_email", email_var.get()))
-        save_button.grid(row=1, column=1, padx=10)
+        save_button.grid(row=2, column=0, padx=10)
 
         # --- Nursery Closure Days ---
-        closure_frame = self.create_section(settings_frame, "Closure Days", 4)
+        closure_frame = self.create_section(settings_frame, "Closure Days", 3)
         ttk.Label(closure_frame, text="Mark holidays or other closure days to block them on the calendar.").grid(row=0, column=0, sticky="w")
         ttk.Button(closure_frame, text="Add Closure Day").grid(row=1, column=0, sticky="w", pady=5)
         ttk.Button(closure_frame, text="View/Edit Closure Days").grid(row=2, column=0, sticky="w", pady=5)
@@ -99,7 +96,6 @@ class Setting(tk.Toplevel):
         section.grid(row=row, column=0, sticky="ew", padx=10, pady=10)
         return section
     
-
     def create_user(self, user_type):
 
         print(f"{user_type}: admin")
@@ -124,10 +120,11 @@ class Setting(tk.Toplevel):
             role = role_entry.get().strip()
             success, msg = admin_db_utils.submit_admin(username, password, role, user_type)
             if success:
-                tk.messagebox.showinfo("Success", msg)
+                messagebox.showinfo("Success", msg)
                 popup.destroy()
+                self.load_staff_members()
             else:
-                tk.messagebox.showerror("Error", msg)
+                messagebox.showerror("Error", msg)
 
         ttk.Button(popup, text="Create", command=lambda: handle_create(user_type)).grid(row=3, column=0, columnspan=2, pady=10)
 
@@ -135,12 +132,12 @@ class Setting(tk.Toplevel):
 
         selected_item = self.staff_tree.selection()
         if not selected_item:
-            tk.messagebox.showerror("Error", "No user selected.")
+            messagebox.showerror("Error", "No user selected.")
             return
 
         selected_user = self.staff_tree.item(selected_item)["values"]
         if not selected_user or len(selected_user) < 3:
-            tk.messagebox.showerror("Error", "Invalid user data.")
+            messagebox.showerror("Error", "Invalid user data.")
             return
 
         username_old = selected_user[0]
@@ -176,14 +173,41 @@ class Setting(tk.Toplevel):
             new_role = role_entry.get().strip()
             user_type = is_admin_var.get()  # 1 if checked, 0 if not
 
-            success, msg = admin_db_utils.edit_user(new_username, new_password, new_role, user_type)
+            success, msg = admin_db_utils.edit_user(username_old, new_username, new_password, new_role, user_type)
             if success:
-                tk.messagebox.showinfo("Success", msg)
+                messagebox.showinfo("Success", msg)
                 popup.destroy()
+                self.load_staff_members()
             else:
-                tk.messagebox.showerror("Error", msg)
+                messagebox.showerror("Error", msg)
 
         ttk.Button(popup, text="Save Changes", command=handle_edit).grid(row=4, column=0, columnspan=2, pady=10)
+
+    def delete_user(self):
+
+        selected_item = self.staff_tree.selection()
+        if not selected_item:
+            messagebox.showerror("Error", "No user selected.")
+            return
+        
+        selected_user = self.staff_tree.item(selected_item)["values"]
+        if not selected_user or len(selected_user) < 3:
+            messagebox.showerror("Error", "Invalid user data.")
+            return
+        
+        username = selected_user[0]
+        is_admin = selected_user[2]
+        print(f"{is_admin}")
+
+        if username == "master":
+            messagebox.showerror("Error", "Cannot Delete Master")
+            return
+        elif is_admin == "Yes":
+            messagebox.showerror("Error", "Cannot Delete Admin")
+        else:
+            admin_db_utils.delete_user(selected_user)
+            messagebox.showinfo("Success", "Successfully deleted")
+            self.load_staff_members()
 
     def load_staff_members(self):
         self.staff_tree.delete(*self.staff_tree.get_children())
