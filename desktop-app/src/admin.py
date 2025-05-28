@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter import StringVar
+from tkcalendar import Calendar
+from tkinter import simpledialog
 
-
-from utils import navigation_utils
+from utils import navigation_utils, calendar_utils
 from utils.db_utils import admin_db_utils
 
 
@@ -37,18 +38,24 @@ class Setting(tk.Toplevel):
         settings_frame.grid(row=0, column=0, sticky="nsew")
         settings_frame.columnconfigure(0, weight=1)
 
-        # Right side: Staff list Treeview
-        staff_list_frame = ttk.LabelFrame(main_frame, text="Staff Members", padding=(10, 10))
-        staff_list_frame.grid(row=0, column=1, sticky="nsew", padx=10)
+        # Right side: Split frame for staff and closure lists
+        right_frame = ttk.Frame(main_frame)
+        right_frame.grid(row=0, column=1, sticky="nsew", padx=10)
+        right_frame.columnconfigure(0, weight=1)
+        right_frame.rowconfigure(0, weight=1)
+        right_frame.rowconfigure(1, weight=1)
+
+        # --- Top: Staff List ---
+        staff_list_frame = ttk.LabelFrame(right_frame, text="Staff Members", padding=(10, 10))
+        staff_list_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
         staff_list_frame.columnconfigure(0, weight=1)
 
         self.staff_tree = ttk.Treeview(
             staff_list_frame,
             columns=("username", "role", "is_admin", "is_active"),
             show="headings",
-            height=25
+            height=10
         )
-
         self.staff_tree.heading("username", text="Username")
         self.staff_tree.heading("role", text="Role")
         self.staff_tree.heading("is_admin", text="Admin")
@@ -58,6 +65,18 @@ class Setting(tk.Toplevel):
         self.staff_tree.column("is_admin", width=80, anchor="center")
         self.staff_tree.column("is_active", width=80, anchor="center")
         self.staff_tree.grid(row=0, column=0, sticky="nsew")
+
+        # --- Bottom: Closure Days List ---
+        closure_list_frame = ttk.LabelFrame(right_frame, text="Closure Days", padding=(10, 10))
+        closure_list_frame.grid(row=1, column=0, sticky="nsew")
+        closure_list_frame.columnconfigure(0, weight=1)
+
+        self.closure_tree = ttk.Treeview(closure_list_frame, columns=("date", "reason"), show="headings", height=8)
+        self.closure_tree.heading("date", text="Date")
+        self.closure_tree.heading("reason", text="Reason")
+        self.closure_tree.column("date", width=100)
+        self.closure_tree.column("reason", width=200)
+        self.closure_tree.grid(row=0, column=0, sticky="nsew")
 
         # Populate the Treeview
         self.load_staff_members()
@@ -71,8 +90,8 @@ class Setting(tk.Toplevel):
         staff_frame = self.create_section(settings_frame, "Staff Accounts", 1)
         ttk.Label(staff_frame, text="Manage staff members").grid(row=0, column=0, sticky="w")
         ttk.Button(staff_frame, text="Add User", command=lambda: self.create_user(0)).grid(row=1, column=0, sticky="w", pady=5)
-        ttk.Button(staff_frame, text="Edit User", command=lambda: self.edit_user()).grid(row=2, column=0, sticky="w", pady=5)
-        ttk.Button(staff_frame, text="Delete User", command=lambda: self.delete_user()).grid(row=2, column=1, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Edit User", command=self.edit_user).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Delete User", command=self.delete_user).grid(row=2, column=1, sticky="w", pady=5)
 
         # --- Email Configuration ---
         email_var = StringVar(value=admin_db_utils.get_setting("notification_email"))
@@ -80,15 +99,33 @@ class Setting(tk.Toplevel):
         ttk.Label(email_frame, text="Set the email address used to send reports to parents.").grid(row=0, column=0, sticky="w")
         email_entry = ttk.Entry(email_frame, width=40, textvariable=email_var)
         email_entry.grid(row=1, column=0, sticky="w")
-
         save_button = ttk.Button(email_frame, text="Save Email", command=lambda: admin_db_utils.set_email("notification_email", email_var.get()))
-        save_button.grid(row=2, column=0, padx=10)
+        save_button.grid(row=2, column=0, pady=10, sticky="w")
 
-        # --- Nursery Closure Days ---
+        # --- Closure Days Input ---
         closure_frame = self.create_section(settings_frame, "Closure Days", 3)
         ttk.Label(closure_frame, text="Mark holidays or other closure days to block them on the calendar.").grid(row=0, column=0, sticky="w")
-        ttk.Button(closure_frame, text="Add Closure Day").grid(row=1, column=0, sticky="w", pady=5)
-        ttk.Button(closure_frame, text="View/Edit Closure Days").grid(row=2, column=0, sticky="w", pady=5)
+
+        self.closure_calendar = Calendar(closure_frame, selectmode="day", date_pattern="y-mm-dd")
+        self.closure_calendar.grid(row=1, column=0, sticky="w", pady=10)
+
+        # Bind the month change event to highlight the weekdays again
+        self.closure_calendar.bind(
+            "<<CalendarMonthChanged>>",
+            lambda event: calendar_utils.on_month_change(
+            self.closure_calendar,
+            self.closure_calendar.get_displayed_month,
+            lambda val: setattr(self, "disabled_weekends", val)
+            )
+        )
+        calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
+        self.disabled_weekends = calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
+
+        ttk.Button(closure_frame, text="Add Selected Day", command=self.add_closure_day).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Button(closure_frame, text="Delete Selected Closure Day", command=self.delete_closure_day).grid(row=3, column=0, sticky="w", pady=5)
+
+        # Load existing closure days
+        self.load_closure_days()
 
     def create_section(self, parent, title, row):
         """Creates a titled section frame within the parent frame."""
@@ -208,6 +245,39 @@ class Setting(tk.Toplevel):
             admin_db_utils.delete_user(selected_user)
             messagebox.showinfo("Success", "Successfully deleted")
             self.load_staff_members()
+
+    def add_closure_day(self):
+        selected_date = self.closure_calendar.get_date()
+        if not selected_date:
+            messagebox.showerror("Error", "Please select a date.")
+            return
+
+        reason = simpledialog.askstring("Closure Reason", f"Reason for closing on {selected_date}:")
+
+        if reason:
+            success = admin_db_utils.add_closure_day(selected_date, reason)
+            if success:
+                messagebox.showinfo("Success", f"Marked {selected_date} as closed.")
+            else:
+                messagebox.showerror("Error", f"{selected_date} is already marked as closed.")
+
+    def load_closure_days(self):
+        self.closure_tree.delete(*self.closure_tree.get_children())
+        for id, date, reason in admin_db_utils.get_all_closure_days():
+            self.closure_tree.insert("", "end", values=(date, reason))
+
+    def delete_closure_day(self):
+        selected_item = self.closure_tree.selection()
+        if not selected_item:
+            messagebox.showerror("Error", "No closure day selected.")
+            return
+
+        values = self.closure_tree.item(selected_item)["values"]
+        date = values[0]
+
+        if messagebox.askyesno("Confirm Delete", f"Remove closure day {date}?"):
+            admin_db_utils.delete_closure_day(date)
+            self.load_closure_days()
 
     def load_staff_members(self):
         self.staff_tree.delete(*self.staff_tree.get_children())

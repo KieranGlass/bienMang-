@@ -4,9 +4,11 @@ from tkinter import ttk, messagebox
 from datetime import datetime, timedelta
 from calendar import monthrange
 from datetime import datetime, timedelta
+from utils.db_utils import admin_db_utils
 
 
 def highlight_weekdays(calendar_widget, get_displayed_month_fn):
+
     """Highlight weekdays and weekends on the calendar_widget"""
     print("Month changed!")
     current_month = get_displayed_month_fn()
@@ -33,10 +35,15 @@ def highlight_weekdays(calendar_widget, get_displayed_month_fn):
         print("No tags currently present")
 
     disabled_weekends = set()
+    closure_dates = set(admin_db_utils.get_closure_days())
 
     for day in total_days_in_month:
         day_date = day.date()
-        if day.weekday() < 5:
+        if str(day_date) in closure_dates:
+            calendar_widget.calevent_create(day_date, f"{day.day}", "closure")
+            calendar_widget.tag_config("closure", background="yellow", foreground="black")
+            disabled_weekends.add(day_date)
+        elif day.weekday() < 5:
             calendar_widget.calevent_create(day_date, f"{day.day}", "weekday")
             calendar_widget.tag_config("weekday", background="lightgreen", foreground="black")
         else:
@@ -68,7 +75,7 @@ def on_day_selected(calendar_widget, disabled_weekends, open_day_info_fn):
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
     if selected_date in disabled_weekends:
-        print(f"Weekend selected: {selected_date}. Selection disabled.")
+        print(f"Date {selected_date} is blocked (weekend or closure).")
         calendar_widget.selection_clear()
         return
 
@@ -81,7 +88,7 @@ def on_day_selected_for_button(calendar_widget, disabled_weekends):
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
     if selected_date in disabled_weekends:
-        print(f"Weekend selected: {selected_date}. Selection disabled.")
+        print(f"Date {selected_date} is blocked (weekend or closure).")
         calendar_widget.selection_clear()
         return
 

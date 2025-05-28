@@ -168,6 +168,14 @@ def create_tables():
             )
             ''')
 
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS closure_days (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT UNIQUE NOT NULL,
+                reason TEXT
+            )
+            ''')
+
             # Commit the changes and leave the connection open for further operations
             conn.commit()
 

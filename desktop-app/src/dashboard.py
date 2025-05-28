@@ -19,7 +19,6 @@ class Dashboard(tk.Toplevel):
         print("Initializing MainWindow...")
         self.root_app = root_app
         self.parent = parent
-        user = SessionManager.current_user
         self.title("Bien Manger")
         self.geometry("1400x900")
         self.configure(bg="#d9f1fb")

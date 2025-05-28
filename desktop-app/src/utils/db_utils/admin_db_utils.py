@@ -128,3 +128,44 @@ def set_email(key, value):
             messagebox.showinfo("Saved", f"Email Configuration saved successfully.")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to save Email Configuration.\n\n{str(e)}")
+
+def get_closure_days():
+    conn = common_db_utils.get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT date FROM closure_days")
+        return [row[0] for row in cursor.fetchall()]
+    finally:
+        conn.close()
+
+def get_all_closure_days():
+    conn =common_db_utils.get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM closure_days")
+        closure_days = cursor.fetchall()
+        return closure_days
+    finally:
+        conn.close()
+
+def add_closure_day(date_str, reason):
+    conn = common_db_utils.get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO closure_days (date, reason) VALUES (?, ?)", (date_str, reason))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    
+def delete_closure_day(date_str):
+    conn = common_db_utils.get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM closure_days WHERE date = ?", (date_str,))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        return False

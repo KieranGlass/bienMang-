@@ -92,20 +92,28 @@ class Menus(tk.Toplevel):
         date_str = selected_date.strftime("%Y-%m-%d")
         menu = menus_db_utils.search_existing_menu(date_str)
 
-        ttk.Label(self.menus_frame, text=f"Menu for {date_str}", font=("Arial", 16)).grid(row=0, column=0, columnspan=2, pady=10)
+        ttk.Label(self.menus_frame, text=f"{date_str}", font=("Arial", 18, "bold")).grid(
+            row=0, column=0, columnspan=2, pady=(10, 20)
+        )
+
+        # Create a labeled frame for better grouping
+        menu_frame = ttk.LabelFrame(self.menus_frame, text="Meal Details", padding=20)
+        menu_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
 
         labels = ["Baby Main", "Baby Dessert", "Grands Starter", "Grands Main", "Grands Dessert"]
         entries = []
 
         for idx, label in enumerate(labels):
-            ttk.Label(self.menus_frame, text=label).grid(row=idx+1, column=0, sticky="e", padx=5, pady=5)
-            entry = ttk.Entry(self.menus_frame, width=40)
-            entry.grid(row=idx+1, column=1, padx=5, pady=5)
+            ttk.Label(menu_frame, text=label + ":", font=("Arial", 12)).grid(
+                row=idx, column=0, sticky="e", padx=10, pady=8
+            )
+            entry = ttk.Entry(menu_frame, width=50)
+            entry.grid(row=idx, column=1, sticky="w", padx=10, pady=8)
             entries.append(entry)
 
         if menu:
             print(f"Menu found: {menu}")
-            for i, value in enumerate(menu[2:]):  # Skip menu_id and date
+            for i, value in enumerate(menu[2:]):
                 entries[i].insert(0, value)
 
             def save_edits():
@@ -114,11 +122,9 @@ class Menus(tk.Toplevel):
                 print("Menu updated.")
 
             action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
-
         else:
-            print("No menu found. creating default...")
+            print("No menu found. Creating default...")
 
-            # Load default values based on the weekday
             weekday = selected_date.strftime("%A").lower()
             defaults = menus_db_utils.DEFAULT_MENUS.get(weekday, ("", "", "", "", ""))
 
@@ -138,7 +144,13 @@ class Menus(tk.Toplevel):
 
             action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
 
-        action_btn.grid(row=len(labels)+2, column=0, columnspan=2, pady=20)
+        action_btn.grid(row=2, column=0, columnspan=2, pady=20)
+
+        # Add styling
+        style = ttk.Style()
+        style.configure("TLabelFrame.Label", font=("Arial", 14, "bold"))
+        style.configure("TLabel", font=("Arial", 12))
+        style.configure("TButton", font=("Arial", 12), padding=6)
 
 if __name__ == "__main__":
     app = Menus()
