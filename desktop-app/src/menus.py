@@ -1,5 +1,6 @@
-from utils import calendar_utils, clock_utils, navigation_utils
+from utils import calendar_utils, clock_utils, navigation_utils, styles
 from utils.db_utils import menus_db_utils
+
 
 import tkinter as tk
 from tkinter import ttk
@@ -13,6 +14,7 @@ class Menus(tk.Toplevel):
         self.root_app = root_app
         self.parent = parent  # Store the Dashboard instance
         print("Initializing Menus...")
+        self.configure(bg="#d9f1fb")
         self.title("Current Pupils")
         self.geometry("1400x900")
         self.lift()
@@ -25,27 +27,29 @@ class Menus(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
         
     def create_menus_window(self):
-        self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar (fixed width)
-        self.grid_columnconfigure(1, weight=4, minsize=600)  # Menu list (flexible)
-        self.grid_rowconfigure(1, weight=1)  # Let row 1 (calendar) expand vertically
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         # Add the sidebar
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
         
         # Column 2 (Middle): Register list and day title
-        self.menus_frame = ttk.Frame(self)
-        self.menus_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 10), pady=(10, 0))
+        self.menus_frame = ttk.Frame(self, style="MainBg.TFrame")
+        self.menus_frame.grid(row=0, column=1, sticky="nsew", padx=(20, 20), pady=(20, 0))
+        self.menus_frame.grid_columnconfigure(0, weight=1)
 
         # Date selection and calendar in column 3
-        self.calendar_frame = ttk.Frame(self)
-        self.calendar_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=10)
+        self.calendar_frame = ttk.Frame(self, style="CalendarBg.TFrame")
+        self.calendar_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
 
         # Ensure the calendar_frame also expands
         self.calendar_frame.grid_columnconfigure(0, weight=1)
         self.calendar_frame.grid_rowconfigure(0, weight=1)
 
         # Calendar widget for date selection
-        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd')
+        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd', background="#003366")
         self.calendar.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
          # Bind the calendar selection event
@@ -92,23 +96,26 @@ class Menus(tk.Toplevel):
         date_str = selected_date.strftime("%Y-%m-%d")
         menu = menus_db_utils.search_existing_menu(date_str)
 
-        ttk.Label(self.menus_frame, text=f"{date_str}", font=("Arial", 18, "bold")).grid(
-            row=0, column=0, columnspan=2, pady=(10, 20)
+        ttk.Label(self.menus_frame, text=calendar_utils.update_day_label(selected_date), font=("Arial", 18, "bold"), background="#d9f1fb").grid(
+            row=0, pady=(10, 20)
         )
 
         # Create a labeled frame for better grouping
-        menu_frame = ttk.LabelFrame(self.menus_frame, text="Meal Details", padding=20)
-        menu_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
+        menu_frame = ttk.LabelFrame(self.menus_frame, text="Meal Details", padding=20, style="MainBg.TFrame")
+        menu_frame.grid(row=1, sticky="nsew", padx=10, pady=10)
+
+        menu_frame.grid_columnconfigure(0, weight=0)
+        menu_frame.grid_columnconfigure(1, weight=1)
 
         labels = ["Baby Main", "Baby Dessert", "Grands Starter", "Grands Main", "Grands Dessert"]
         entries = []
 
         for idx, label in enumerate(labels):
-            ttk.Label(menu_frame, text=label + ":", font=("Arial", 12)).grid(
-                row=idx, column=0, sticky="e", padx=10, pady=8
+            ttk.Label(menu_frame, text=label + ":", font=("Arial", 12), background="#d9f1fb").grid(
+                row=idx, column=0, sticky="nsew", padx=10, pady=8
             )
             entry = ttk.Entry(menu_frame, width=50)
-            entry.grid(row=idx, column=1, sticky="w", padx=10, pady=8)
+            entry.grid(row=idx, column=1, sticky="nsew", padx=10, pady=8)
             entries.append(entry)
 
         if menu:
@@ -121,7 +128,7 @@ class Menus(tk.Toplevel):
                 menus_db_utils.update_menu(menu[0], *updated_values)
                 print("Menu updated.")
 
-            action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
+            action_btn = ttk.Button(self.menus_frame, text="Save Changes", style="MenuSave.TButton", command=save_edits)
         else:
             print("No menu found. Creating default...")
 
@@ -142,15 +149,9 @@ class Menus(tk.Toplevel):
                 menus_db_utils.update_menu(menu[0], *updated_values)
                 print("Menu updated.")
 
-            action_btn = ttk.Button(self.menus_frame, text="Save Changes", command=save_edits)
+            action_btn = ttk.Button(self.menus_frame, text="Save Changes", style="MenuSave.TButton", command=save_edits)
 
-        action_btn.grid(row=2, column=0, columnspan=2, pady=20)
-
-        # Add styling
-        style = ttk.Style()
-        style.configure("TLabelFrame.Label", font=("Arial", 14, "bold"))
-        style.configure("TLabel", font=("Arial", 12))
-        style.configure("TButton", font=("Arial", 12), padding=6)
+        action_btn.grid(row=2, pady=20, sticky="n")
 
 if __name__ == "__main__":
     app = Menus()

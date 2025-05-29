@@ -15,6 +15,7 @@ class Reports(tk.Toplevel):
         self.root_app = root_app
         self.parent = parent 
         print("Initializing Reports...")
+        self.configure(bg="#d9f1fb")
         self.title("Reports")
         self.geometry("1400x900")
         self.lift()
@@ -26,16 +27,17 @@ class Reports(tk.Toplevel):
 
     def create_reports_window(self):
         # Grid configuration
-        self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar
-        self.grid_columnconfigure(1, weight=4, minsize=600)  # Main content
-        self.grid_rowconfigure(1, weight=1)  # Calendar expands
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         # Sidebar
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
 
         # Reports Frame
         self.reports_frame = ttk.Frame(self)
-        self.reports_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 10), pady=(10, 0))
+        self.reports_frame.grid(row=0, column=1, sticky="nsew", padx=(20, 20), pady=(10, 0))
         self.reports_frame.grid_columnconfigure(0, weight=1)
         self.reports_frame.grid_rowconfigure(1, weight=1)
 
@@ -113,12 +115,12 @@ class Reports(tk.Toplevel):
             self.report_table.heading(col, text=col)
 
         # Calendar Frame
-        self.calendar_frame = ttk.Frame(self)
-        self.calendar_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=10)
+        self.calendar_frame = ttk.Frame(self, style="CalendarBg.TFrame")
+        self.calendar_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
         self.calendar_frame.grid_columnconfigure(0, weight=1)
         self.calendar_frame.grid_rowconfigure(0, weight=1)
 
-        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd')
+        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd', background="#003366")
         self.calendar.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         self.calendar.bind(

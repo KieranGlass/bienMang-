@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 
-from utils import navigation_utils, clock_utils
+from utils import navigation_utils, clock_utils, styles
 from utils.db_utils import common_db_utils, children_db_utils
 
 import matplotlib.pyplot as plt
@@ -43,16 +43,16 @@ class Children(tk.Toplevel):
         # Ensure that the main window grid can grow as needed
         self.grid_rowconfigure(0, weight=1)  
         self.grid_rowconfigure(1, weight=1)  
-        self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=2)  
-        self.grid_columnconfigure(2, weight=2)  
+        self.grid_columnconfigure(0, weight=0) 
+        self.grid_columnconfigure(1, weight=1)  
+        self.grid_columnconfigure(2, weight=1)  
 
         # Content Frame in the center-right section (columns 1 and 2)
         dashboard_frame.grid_rowconfigure(0, weight=1)  
         dashboard_frame.grid_rowconfigure(1, weight=1)  
-        dashboard_frame.grid_columnconfigure(0, weight=1)
-        dashboard_frame.grid_columnconfigure(1, weight=2)  
-        dashboard_frame.grid_columnconfigure(2, weight=2)
+        dashboard_frame.grid_columnconfigure(0, weight=0)
+        dashboard_frame.grid_columnconfigure(1, weight=1)  
+        dashboard_frame.grid_columnconfigure(2, weight=1)
 
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
 
@@ -75,12 +75,7 @@ class Children(tk.Toplevel):
         
         # Create a Notebook widget for tabs
         self.notebook = ttk.Notebook(self)
-        self.notebook.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
-
-        # Make sure the notebook expands in both directions
-        self.grid_rowconfigure(1, weight=1)  # Row for notebook (1-based index)
-        self.grid_columnconfigure(0, weight=1)  # Column 0 for notebook
-        self.grid_columnconfigure(1, weight=1)  # Column 1 for notebook (optional)
+        self.notebook.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
         
         # Create three frames, a control panel and one for child info and one for schedule
         self.child_control_panel_frame = ttk.Frame(self.notebook)
@@ -140,7 +135,7 @@ class Children(tk.Toplevel):
     def create_child_info_form(self, parent):
         """Create the child info form in the second tab."""
         labels_frame = ttk.Frame(parent)
-        labels_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        labels_frame.grid(row=0, column=0, padx=(10,10), pady=10, sticky="nsew")
 
         # Create a list of labels
         labels = [

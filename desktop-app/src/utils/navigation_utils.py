@@ -15,8 +15,8 @@ from utils import clock_utils
 def create_global_sidebar(app):
     """ Create the sidebar with tabs """
     # Sidebar container (frame)
-    sidebar_frame = ttk.Frame(app, relief="raised")
-    sidebar_frame.grid(row=0, column=0, rowspan=1, padx=0, pady=0, sticky="nsw")
+    sidebar_frame = ttk.Frame(app, relief="raised", style="SidebarBackground.TFrame")
+    sidebar_frame.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky="nsew")
 
     # Tab buttons
     create_sidebar_tab(sidebar_frame, "Dashboard", lambda: show_dashboard(app), 0)
@@ -29,7 +29,7 @@ def create_global_sidebar(app):
 
     user = SessionManager.current_user
 
-    user_label = tk.Label(sidebar_frame, text=f"User:\n{user[1]}")
+    user_label = tk.Label(sidebar_frame, text=f"User:\n{user[1]}", bg="#003366", fg="white")
     user_label.grid(row=7, column=0, pady=10)
 
     time_label = clock_utils.create_clock(sidebar_frame, app)

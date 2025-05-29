@@ -13,12 +13,13 @@ class Setting(tk.Toplevel):
         super().__init__(parent)
         self.root_app = root_app
         self.parent = parent
+        self.configure(bg="#d9f1fb")
         self.title("Settings")
         self.geometry("1400x900")
         self.lift()
 
-        self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar
-        self.grid_columnconfigure(1, weight=4, minsize=600)  # Main area
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
 
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
 
@@ -84,14 +85,14 @@ class Setting(tk.Toplevel):
         # --- Admin Setup Section ---
         admin_frame = self.create_section(settings_frame, "Admin Setup", 0)
         ttk.Label(admin_frame, text="Replace master user with a secure admin account.").grid(row=0, column=0, sticky="w")
-        ttk.Button(admin_frame, text="Create Admin User", command=lambda: self.create_user(1)).grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Button(admin_frame, text="Create Admin User", style="SettingsGreen.TButton", command=lambda: self.create_user(1)).grid(row=1, column=0, sticky="w", pady=5)
 
         # --- Staff Management Section ---
         staff_frame = self.create_section(settings_frame, "Staff Accounts", 1)
         ttk.Label(staff_frame, text="Manage staff members").grid(row=0, column=0, sticky="w")
-        ttk.Button(staff_frame, text="Add User", command=lambda: self.create_user(0)).grid(row=1, column=0, sticky="w", pady=5)
-        ttk.Button(staff_frame, text="Edit User", command=self.edit_user).grid(row=2, column=0, sticky="w", pady=5)
-        ttk.Button(staff_frame, text="Delete User", command=self.delete_user).grid(row=2, column=1, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Add User", style="SettingsGreen.TButton", command=lambda: self.create_user(0)).grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Edit User",style="SettingsGreen.TButton", command=self.edit_user).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Button(staff_frame, text="Delete User", style="SettingsRed.TButton", command=self.delete_user).grid(row=2, column=1, sticky="w", pady=5)
 
         # --- Email Configuration ---
         email_var = StringVar(value=admin_db_utils.get_setting("notification_email"))
@@ -99,7 +100,7 @@ class Setting(tk.Toplevel):
         ttk.Label(email_frame, text="Set the email address used to send reports to parents.").grid(row=0, column=0, sticky="w")
         email_entry = ttk.Entry(email_frame, width=40, textvariable=email_var)
         email_entry.grid(row=1, column=0, sticky="w")
-        save_button = ttk.Button(email_frame, text="Save Email", command=lambda: admin_db_utils.set_email("notification_email", email_var.get()))
+        save_button = ttk.Button(email_frame, text="Save Email", style="SettingsGreen.TButton", command=lambda: admin_db_utils.set_email("notification_email", email_var.get()))
         save_button.grid(row=2, column=0, pady=10, sticky="w")
 
         # --- Closure Days Input ---
@@ -121,8 +122,8 @@ class Setting(tk.Toplevel):
         calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
         self.disabled_weekends = calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
 
-        ttk.Button(closure_frame, text="Add Selected Day", command=self.add_closure_day).grid(row=2, column=0, sticky="w", pady=5)
-        ttk.Button(closure_frame, text="Delete Selected Closure Day", command=self.delete_closure_day).grid(row=3, column=0, sticky="w", pady=5)
+        ttk.Button(closure_frame, text="Add Selected Day", style="SettingsGreen.TButton", command=self.add_closure_day).grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Button(closure_frame, text="Delete Selected Closure Day", style="SettingsRed.TButton", command=self.delete_closure_day).grid(row=3, column=0, sticky="w", pady=5)
 
         # Load existing closure days
         self.load_closure_days()
@@ -258,6 +259,9 @@ class Setting(tk.Toplevel):
             success = admin_db_utils.add_closure_day(selected_date, reason)
             if success:
                 messagebox.showinfo("Success", f"Marked {selected_date} as closed.")
+                self.load_closure_days()
+                calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
+                self.disabled_weekends = calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
             else:
                 messagebox.showerror("Error", f"{selected_date} is already marked as closed.")
 
@@ -278,6 +282,8 @@ class Setting(tk.Toplevel):
         if messagebox.askyesno("Confirm Delete", f"Remove closure day {date}?"):
             admin_db_utils.delete_closure_day(date)
             self.load_closure_days()
+            calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
+            self.disabled_weekends = calendar_utils.highlight_weekdays(self.closure_calendar, self.closure_calendar.get_displayed_month)
 
     def load_staff_members(self):
         self.staff_tree.delete(*self.staff_tree.get_children())

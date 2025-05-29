@@ -13,6 +13,7 @@ class Registers(tk.Toplevel):
         self.root_app = root_app
         self.parent = parent
         print("Initializing Registers...")
+        self.configure(bg="#d9f1fb")
         self.title("Registers")
         self.geometry("1400x900")
         self.lift()
@@ -28,23 +29,24 @@ class Registers(tk.Toplevel):
 
     def create_registers_window(self):
         # Set up the grid layout with three columns
-        self.grid_columnconfigure(0, weight=1, minsize=200)  # Sidebar (fixed width)
-        self.grid_columnconfigure(1, weight=4, minsize=600)  # Register list (flexible)
+        self.grid_columnconfigure(0, weight=0)  # Sidebar (fixed width)
+        self.grid_columnconfigure(1, weight=1, minsize=600)  # Register list (flexible)
+        self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)  # Let row 1 (calendar) expand vertically
 
         # Add the sidebar
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
         
         # ===== Scrollable Register Container =====
-        self.register_container = ttk.Frame(self)
-        self.register_container.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=(10, 0))
+        self.register_container = ttk.Frame(self, style="Register.TFrame")
+        self.register_container.grid(row=0, column=1, sticky="nsew", padx=(15, 15), pady=(10, 0))
 
         # Canvas for scrollable content
         self.register_canvas = tk.Canvas(self.register_container)
         self.scrollbar = ttk.Scrollbar(self.register_container, orient="vertical", command=self.register_canvas.yview)
 
         # Inner frame that will hold all child rows
-        self.scrollable_register_frame = ttk.Frame(self.register_canvas)
+        self.scrollable_register_frame = ttk.Frame(self.register_canvas, style="Register.TFrame")
         
         # Window inside canvas (capture window ID to modify width)
         self.canvas_window_id = self.register_canvas.create_window(
@@ -74,14 +76,14 @@ class Registers(tk.Toplevel):
 
         self.register_container.grid_propagate(True)        
 
-        self.calendar_frame = ttk.Frame(self)
-        self.calendar_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=20, pady=10)
+        self.calendar_frame = ttk.Frame(self, style="CalendarBg.TFrame")
+        self.calendar_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
 
         self.calendar_frame.grid_columnconfigure(0, weight=1)
         self.calendar_frame.grid_rowconfigure(0, weight=1)
 
         # Calendar widget for date selection
-        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd')
+        self.calendar = Calendar(self.calendar_frame, selectmode='day', date_pattern='yyyy-mm-dd', background="#003366",)
         self.calendar.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # Bind the calendar selection event
@@ -137,7 +139,8 @@ class Registers(tk.Toplevel):
         for widget in self.scrollable_register_frame.winfo_children():
             widget.destroy()
 
-        self.update_day_label(selected_date)
+        self.day_label = tk.Label(self.scrollable_register_frame, text=calendar_utils.update_day_label(selected_date), font=("Arial", 14), bg="#d9f1fb")
+        self.day_label.grid(row=0, column=0, columnspan=5, pady=20, padx=0, sticky="n")
 
         children = common_db_utils.get_all_children()
 
@@ -153,19 +156,19 @@ class Registers(tk.Toplevel):
         self.scrollable_register_frame.grid_columnconfigure(3, weight=1, minsize=50)  # Column for adjust button
         self.scrollable_register_frame.grid_columnconfigure(4, weight=1, minsize=50)
 
-        name_header = tk.Label(self.scrollable_register_frame, text="Child Name", font=("Arial", 12, "bold"))
+        name_header = tk.Label(self.scrollable_register_frame, text="Child Name", font=("Arial", 12, "bold"), bg="#d9f1fb")
         name_header.grid(row=1, column=0, padx=0, sticky="ew")
 
-        start_header = tk.Label(self.scrollable_register_frame, text="Start Time", font=("Arial", 12, "bold"))
+        start_header = tk.Label(self.scrollable_register_frame, text="Start Time", font=("Arial", 12, "bold"), bg="#d9f1fb")
         start_header.grid(row=1, column=1, padx=10, sticky="ew")
 
-        end_header = tk.Label(self.scrollable_register_frame, text="End Time", font=("Arial", 12, "bold"))
+        end_header = tk.Label(self.scrollable_register_frame, text="End Time", font=("Arial", 12, "bold"), bg="#d9f1fb")
         end_header.grid(row=1, column=2, padx=10, sticky="ew")
 
-        adjust_header = tk.Label(self.scrollable_register_frame, text="")
+        adjust_header = tk.Label(self.scrollable_register_frame, text="", bg="#d9f1fb")
         adjust_header.grid(row=1, column=3, padx=10, sticky="ew")
 
-        absent_header = tk.Label(self.scrollable_register_frame, text="")
+        absent_header = tk.Label(self.scrollable_register_frame, text="", bg="#d9f1fb")
         absent_header.grid(row=1, column=4, padx=10, sticky="ew")
 
         # Loop through the children and display their schedule
@@ -221,36 +224,6 @@ class Registers(tk.Toplevel):
 
             # Increment the row index for the next child
             i += 1
-
-    def update_day_label(self, date):
-        """ Update the label in the middle column to show the selected day """
-        
-        # Format the selected date into the desired format (e.g., "Monday, 2nd June 2025")
-        day_name = date.strftime("%A")
-        print(f"{day_name}")
-        day_number = date.day
-        print(f"{day_number}")
-        month_name = date.strftime("%B")
-        print(f"{month_name}")
-        year = date.year
-        
-        # Handle the suffix for the day number (e.g., 1st, 2nd, 3rd, etc.)
-        suffix = 'th'
-        if 4 <= day_number <= 20:
-            suffix = 'th'
-        elif day_number % 10 == 1:
-            suffix = 'st'
-        elif day_number % 10 == 2:
-            suffix = 'nd'
-        elif day_number % 10 == 3:
-            suffix = 'rd'
-
-        # Format the date string
-        formatted_date = f"{day_name} {day_number}{suffix} {month_name} {year}"
-        print(f"{formatted_date}")
-
-        self.day_label = tk.Label(self.scrollable_register_frame, text=formatted_date, font=("Arial", 14))
-        self.day_label.grid(row=0, column=0, columnspan=2, pady=10, padx=0)
 
     def adjust_schedule(self, child_id, date, current_start, current_end, name):
         """Adjust the schedule for a child."""

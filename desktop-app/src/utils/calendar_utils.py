@@ -106,6 +106,36 @@ def get_week_dates(selected_date_str):
     return [(monday + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
 
 def get_month_dates(start_date_str):
+
     start = datetime.strptime(start_date_str, "%Y-%m-%d")
     days = monthrange(start.year, start.month)[1]
     return [(start.replace(day=1) + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days)]
+
+def update_day_label(date):
+    """ Update the label in the middle column to show the selected day """
+        
+    # Format the selected date into the desired format (e.g., "Monday, 2nd June 2025")
+    day_name = date.strftime("%A")
+    print(f"{day_name}")
+    day_number = date.day
+    print(f"{day_number}")
+    month_name = date.strftime("%B")
+    print(f"{month_name}")
+    year = date.year
+        
+    # Handle the suffix for the day number (e.g., 1st, 2nd, 3rd, etc.)
+    suffix = 'th'
+    if 4 <= day_number <= 20:
+        suffix = 'th'
+    elif day_number % 10 == 1:
+        suffix = 'st'
+    elif day_number % 10 == 2:
+        suffix = 'nd'
+    elif day_number % 10 == 3:
+        suffix = 'rd'
+
+    # Format the date string
+    formatted_date = f"{day_name} {day_number}{suffix} {month_name} {year}"
+    print(f"{formatted_date}")
+
+    return formatted_date

@@ -38,7 +38,7 @@ class Dashboard(tk.Toplevel):
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
     
         # Create main frame for dashboard
-        dashboard_frame = ttk.Frame(self)
+        dashboard_frame = ttk.Frame(self, style="CalendarBg.TFrame")
         dashboard_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
 
          # Configure grid weights for the dashboard frame to make it responsive
@@ -50,7 +50,7 @@ class Dashboard(tk.Toplevel):
 
     def create_calendar(self, parent):
         """ Create and display the calendar widget """
-        self.calendar = Calendar(parent, selectmode="day", date_pattern="y-mm-dd", maxdate=date.today())
+        self.calendar = Calendar(parent, selectmode="day", date_pattern="y-mm-dd", maxdate=date.today(), background="#003366")
         self.calendar.grid(row=0, column=0, sticky="nsew")
 
         # Set the calendar to take up all the available space in the grid cell

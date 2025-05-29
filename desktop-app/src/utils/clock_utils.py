@@ -1,9 +1,9 @@
-import tkinter as tk
+import tkinter as ttk
 import time
 from datetime import datetime, timedelta
 
 def create_clock(parent, update_target):
-    label = tk.Label(parent, font=("Helvetica", 20), bg="#d9f1fb")
+    label = ttk.Label(parent, font=("Helvetica", 20), bg="#003366", fg="white")
     update_clock(label, update_target)
     return label
 
