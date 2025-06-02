@@ -34,13 +34,11 @@ class Menus(tk.Toplevel):
 
         # Add the sidebar
         self.sidebar_frame = navigation_utils.create_global_sidebar(self)
-        
-        # Column 2 (Middle): Register list and day title
+    
         self.menus_frame = ttk.Frame(self, style="MainBg.TFrame")
         self.menus_frame.grid(row=0, column=1, sticky="nsew", padx=(20, 20), pady=(20, 0))
         self.menus_frame.grid_columnconfigure(0, weight=1)
 
-        # Date selection and calendar in column 3
         self.calendar_frame = ttk.Frame(self, style="CalendarBg.TFrame")
         self.calendar_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
 

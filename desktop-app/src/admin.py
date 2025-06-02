@@ -15,7 +15,7 @@ class Setting(tk.Toplevel):
         self.parent = parent
         self.configure(bg="#d9f1fb")
         self.title("Settings")
-        self.geometry("1400x900")
+        self.geometry("1400x800")
         self.lift()
 
         self.grid_columnconfigure(0, weight=0)
@@ -29,25 +29,25 @@ class Setting(tk.Toplevel):
 
     def create_settings_window(self):   
         # Main container for settings
-        main_frame = ttk.Frame(self)
+        main_frame = ttk.Frame(self, style="settingsContentBackground.TFrame")
         main_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
 
         # Left side: Settings sections
-        settings_frame = ttk.Frame(main_frame)
+        settings_frame = ttk.Frame(main_frame, style="settingsContentBackground.TFrame")
         settings_frame.grid(row=0, column=0, sticky="nsew")
         settings_frame.columnconfigure(0, weight=1)
 
         # Right side: Split frame for staff and closure lists
-        right_frame = ttk.Frame(main_frame)
+        right_frame = ttk.Frame(main_frame, style="settingsContentBackground.TFrame")
         right_frame.grid(row=0, column=1, sticky="nsew", padx=10)
         right_frame.columnconfigure(0, weight=1)
         right_frame.rowconfigure(0, weight=1)
         right_frame.rowconfigure(1, weight=1)
 
         # --- Top: Staff List ---
-        staff_list_frame = ttk.LabelFrame(right_frame, text="Staff Members", padding=(10, 10))
+        staff_list_frame = ttk.LabelFrame(right_frame, text="Staff Members", style="settingsContentBackground.TFrame", padding=(10, 10))
         staff_list_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
         staff_list_frame.columnconfigure(0, weight=1)
 
@@ -68,7 +68,7 @@ class Setting(tk.Toplevel):
         self.staff_tree.grid(row=0, column=0, sticky="nsew")
 
         # --- Bottom: Closure Days List ---
-        closure_list_frame = ttk.LabelFrame(right_frame, text="Closure Days", padding=(10, 10))
+        closure_list_frame = ttk.LabelFrame(right_frame, text="Closure Days", style="settingsContentBackground.TFrame", padding=(10, 10))
         closure_list_frame.grid(row=1, column=0, sticky="nsew")
         closure_list_frame.columnconfigure(0, weight=1)
 
@@ -84,12 +84,12 @@ class Setting(tk.Toplevel):
 
         # --- Admin Setup Section ---
         admin_frame = self.create_section(settings_frame, "Admin Setup", 0)
-        ttk.Label(admin_frame, text="Replace master user with a secure admin account.").grid(row=0, column=0, sticky="w")
+        ttk.Label(admin_frame, text="Replace master user with a secure admin account.", background="#d9f1fb").grid(row=0, column=0, sticky="w")
         ttk.Button(admin_frame, text="Create Admin User", style="SettingsGreen.TButton", command=lambda: self.create_user(1)).grid(row=1, column=0, sticky="w", pady=5)
 
         # --- Staff Management Section ---
         staff_frame = self.create_section(settings_frame, "Staff Accounts", 1)
-        ttk.Label(staff_frame, text="Manage staff members").grid(row=0, column=0, sticky="w")
+        ttk.Label(staff_frame, text="Manage staff members", background="#d9f1fb").grid(row=0, column=0, sticky="w")
         ttk.Button(staff_frame, text="Add User", style="SettingsGreen.TButton", command=lambda: self.create_user(0)).grid(row=1, column=0, sticky="w", pady=5)
         ttk.Button(staff_frame, text="Edit User",style="SettingsGreen.TButton", command=self.edit_user).grid(row=2, column=0, sticky="w", pady=5)
         ttk.Button(staff_frame, text="Delete User", style="SettingsRed.TButton", command=self.delete_user).grid(row=2, column=1, sticky="w", pady=5)
@@ -97,7 +97,7 @@ class Setting(tk.Toplevel):
         # --- Email Configuration ---
         email_var = StringVar(value=admin_db_utils.get_setting("notification_email"))
         email_frame = self.create_section(settings_frame, "Email Configuration", 2)
-        ttk.Label(email_frame, text="Set the email address used to send reports to parents.").grid(row=0, column=0, sticky="w")
+        ttk.Label(email_frame, text="Set the email address used to send reports to parents.", background="#d9f1fb").grid(row=0, column=0, sticky="w")
         email_entry = ttk.Entry(email_frame, width=40, textvariable=email_var)
         email_entry.grid(row=1, column=0, sticky="w")
         save_button = ttk.Button(email_frame, text="Save Email", style="SettingsGreen.TButton", command=lambda: admin_db_utils.set_email("notification_email", email_var.get()))
@@ -105,7 +105,7 @@ class Setting(tk.Toplevel):
 
         # --- Closure Days Input ---
         closure_frame = self.create_section(settings_frame, "Closure Days", 3)
-        ttk.Label(closure_frame, text="Mark holidays or other closure days to block them on the calendar.").grid(row=0, column=0, sticky="w")
+        ttk.Label(closure_frame, text="Mark holidays or other closure days to block them on the calendar.", background="#d9f1fb").grid(row=0, column=0, sticky="w")
 
         self.closure_calendar = Calendar(closure_frame, selectmode="day", date_pattern="y-mm-dd")
         self.closure_calendar.grid(row=1, column=0, sticky="w", pady=10)
@@ -130,7 +130,7 @@ class Setting(tk.Toplevel):
 
     def create_section(self, parent, title, row):
         """Creates a titled section frame within the parent frame."""
-        section = ttk.LabelFrame(parent, text=title, padding=(10, 10))
+        section = ttk.LabelFrame(parent, text=title, padding=(10, 10), style="settingsContentBackground.TFrame")
         section.grid(row=row, column=0, sticky="ew", padx=10, pady=10)
         return section
     

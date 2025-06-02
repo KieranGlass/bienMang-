@@ -12,44 +12,39 @@ class DayInfoPage(tk.Toplevel):
         super().__init__(parent)
         self.selected_date = selected_date
         self.root_app = root_app
+        self.configure(bg="#d9f1fb")
         title_date = self.format_title_date(selected_date)
         self.title(f"{title_date}")
-        self.geometry("1400x900")
+        self.geometry("1200x800")
 
         self.protocol("WM_DELETE_WINDOW", lambda: navigation_utils.on_close(self))
 
-        self.register_label = tk.Label(self, text="Scheduled Register", font=("Helvetica", 14, "bold"))
+        self.register_label = tk.Label(self, text="Scheduled Register", bg="#d9f1fb", font=("Helvetica", 14, "bold"))
         self.register_label.grid(row=0, column=0, pady=5,  padx=10, sticky="w")
 
-        self.register_frame = ttk.Frame(self)
+        self.register_frame = ttk.Frame(self, style="dayInfoBackground.TFrame")
         self.register_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=20)
-
-        self.register_button_frame = ttk.Frame(self)
-        self.register_button_frame.grid(row=2, column=0, sticky="nsew")
-
-        self.mod_register_button = tk.Button(self.register_button_frame, text="Modify Register", command=lambda: navigation_utils.show_registers(self, selected_date))
-        self.mod_register_button.grid(row=0, column=0, padx=10, pady=10)
         
         # Menu Label
-        self.menu_label = tk.Label(self, text="Menus", font=("Helvetica", 14, "bold"))
+        self.menu_label = tk.Label(self, text="Menus", font=("Arial", 14, "bold"), bg="#d9f1fb")
         self.menu_label.grid(row=3, column=0, pady=5, sticky="w", padx=10)
 
         # Baby Menu Section
-        self.baby_menu_frame = tk.LabelFrame(self, text="Baby Menu", font=("Helvetica", 12), padx=10, pady=10)
+        self.baby_menu_frame = tk.LabelFrame(self, text="Baby Menu", bg="#d9f1fb", font=("Arial", 12, "bold"), padx=10, pady=10)
         self.baby_menu_frame.grid(row=4, column=0, sticky="new", padx=10)
 
         # Grands Menu Section
-        self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", font=("Helvetica", 12), padx=10, pady=10)
+        self.grands_menu_frame = tk.LabelFrame(self, text="Grands Menu", bg="#d9f1fb", font=("Arial", 12, "bold"), padx=10, pady=10)
         self.grands_menu_frame.grid(row=5, column=0, sticky="new", padx=10)    
 
         self.display_register(selected_date)
         self.display_menu(selected_date)
 
-        self.button_frame = ttk.Frame(self)
+        self.button_frame = ttk.Frame(self, style="Register.TFrame")
         self.button_frame.grid(row=6, column=0, sticky="nsew")
 
         # Back button to go back to the calendar dashboard
-        self.back_button = tk.Button(self.button_frame, text="Close", command=lambda: navigation_utils.on_close(self))
+        self.back_button = ttk.Button(self.button_frame, text="Close", style="dayInfoClose.TButton", command=lambda: navigation_utils.on_close(self))
         self.back_button.grid(row=0, column=0, pady=10, padx=10)
 
         # Configure the grid layout of the window to be responsive
@@ -69,16 +64,16 @@ class DayInfoPage(tk.Toplevel):
         self.register_frame.grid_columnconfigure(2, weight=1, minsize=100)  # Column for finish time
         self.register_frame.grid_columnconfigure(3, weight=1, minsize=100)  # Column for status
 
-        name_header = tk.Label(self.register_frame, text="Child Name", font=("Arial", 12, "bold"))
+        name_header = tk.Label(self.register_frame, text="Child Name", bg="#003366", fg="white", font=("Arial", 12, "bold"))
         name_header.grid(row=1, column=0, padx=10, sticky="nsew")
 
-        start_header = tk.Label(self.register_frame, text="Start", font=("Arial", 12, "bold"))
+        start_header = tk.Label(self.register_frame, text="Start", bg="#003366", fg="white", font=("Arial", 12, "bold"))
         start_header.grid(row=1, column=1, padx=10, sticky="nsew")
 
-        end_header = tk.Label(self.register_frame, text="Finish", font=("Arial", 12, "bold"))
+        end_header = tk.Label(self.register_frame, text="Finish", bg="#003366", fg="white", font=("Arial", 12, "bold"))
         end_header.grid(row=1, column=2, padx=10, sticky="nsew")
 
-        info_header = tk.Label(self.register_frame, text="Status", font=("Arial", 12, "bold"))
+        info_header = tk.Label(self.register_frame, text="Status", bg="#003366", fg="white", font=("Arial", 12, "bold"))
         info_header.grid(row=1, column=3, padx=10, sticky="nsew")
 
         i = 2  # Keep track of row index
@@ -159,21 +154,21 @@ class DayInfoPage(tk.Toplevel):
                 widget.destroy()
 
             # Baby Menu (Grid layout inside frame)
-            tk.Label(self.baby_menu_frame, text="Main:", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w", padx=5, pady=2)
-            tk.Label(self.baby_menu_frame, text=baby_main, font=("Helvetica", 11)).grid(row=0, column=1, sticky="w", padx=5)
+            tk.Label(self.baby_menu_frame, text="Main:", bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.baby_menu_frame, text=baby_main, bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=0, column=1, sticky="w", padx=5)
 
-            tk.Label(self.baby_menu_frame, text="Dessert:", font=("Helvetica", 11)).grid(row=1, column=0, sticky="w", padx=5, pady=2)
-            tk.Label(self.baby_menu_frame, text=baby_dessert, font=("Helvetica", 11)).grid(row=1, column=1, sticky="w", padx=5)
+            tk.Label(self.baby_menu_frame, text="Dessert:", bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=1, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.baby_menu_frame, text=baby_dessert, bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=1, column=1, sticky="w", padx=5)
 
             # Grands Menu
-            tk.Label(self.grands_menu_frame, text="Starter:", font=("Helvetica", 11)).grid(row=0, column=0, sticky="w", padx=5, pady=2)
-            tk.Label(self.grands_menu_frame, text=grands_starter, font=("Helvetica", 11)).grid(row=0, column=1, sticky="w", padx=5)
+            tk.Label(self.grands_menu_frame, text="Starter:", bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=0, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.grands_menu_frame, text=grands_starter, bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=0, column=1, sticky="w", padx=5)
 
-            tk.Label(self.grands_menu_frame, text="Main:", font=("Helvetica", 11)).grid(row=1, column=0, sticky="w", padx=5, pady=2)
-            tk.Label(self.grands_menu_frame, text=grands_main, font=("Helvetica", 11)).grid(row=1, column=1, sticky="w", padx=5)
+            tk.Label(self.grands_menu_frame, text="Main:", bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=1, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.grands_menu_frame, text=grands_main, bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=1, column=1, sticky="w", padx=5)
 
-            tk.Label(self.grands_menu_frame, text="Dessert:", font=("Helvetica", 11)).grid(row=2, column=0, sticky="w", padx=5, pady=2)
-            tk.Label(self.grands_menu_frame, text=grands_dessert, font=("Helvetica", 11)).grid(row=2, column=1, sticky="w", padx=5)
+            tk.Label(self.grands_menu_frame, text="Dessert:", bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=2, column=0, sticky="w", padx=5, pady=2)
+            tk.Label(self.grands_menu_frame, text=grands_dessert, bg="#d9f1fb", font=("Arial", 11, "bold")).grid(row=2, column=1, sticky="w", padx=5)
 
         else:
             

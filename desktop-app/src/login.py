@@ -18,7 +18,7 @@ class LoginWindow(tk.Toplevel):
         self.main_frame.place(relx=0.5, rely=0.5, anchor='center')
     
         # Create login frame inside main frame
-        self.login_frame = ttk.Frame(self.main_frame, padding="20")
+        self.login_frame = ttk.Frame(self.main_frame, padding="20", style="dayInfoBackground.TFrame")
         self.login_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
     
         # Configure grid weights for proper expansion
@@ -29,21 +29,21 @@ class LoginWindow(tk.Toplevel):
 
     def create_login_widgets(self):
         # Center title label
-        title_label = ttk.Label(self.login_frame, text="Login", font=("Helvetica", 18))
+        title_label = ttk.Label(self.login_frame, text="Login", font=("Arial", 16, "bold"), background="#003366", foreground="white")
         title_label.grid(row=0, column=0, pady=20)
     
         # Center username section
-        ttk.Label(self.login_frame, text="Username:").grid(row=1, column=0, pady=5)
+        ttk.Label(self.login_frame, text="Username:", font=("Arial", 14, "bold"), background="#003366", foreground="white").grid(row=1, column=0, pady=5)
         self.username_entry = ttk.Entry(self.login_frame)
         self.username_entry.grid(row=2, column=0, pady=5, sticky='ew')
     
         # Center password section
-        ttk.Label(self.login_frame, text="Password:").grid(row=3, column=0, pady=5)
+        ttk.Label(self.login_frame, text="Password:", font=("Arial", 14, "bold"), background="#003366", foreground="white").grid(row=3, column=0, pady=5)
         self.password_entry = ttk.Entry(self.login_frame, show="*")
         self.password_entry.grid(row=4, column=0, pady=5, sticky='ew')
     
         # Center login button
-        ttk.Button(self.login_frame, text="Login", command=self.login).grid(row=5, column=0, pady=20)
+        ttk.Button(self.login_frame, text="Login", command=self.login, style="login.TButton").grid(row=5, column=0, pady=20)
     
         # Configure grid weights for proper expansion
         self.login_frame.grid_columnconfigure(0, weight=1)
