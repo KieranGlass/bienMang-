@@ -74,13 +74,16 @@ class Children(tk.Toplevel):
         """Create the tabbed interface for child info and schedule."""
         
         # Create a Notebook widget for tabs
-        self.notebook = ttk.Notebook(self)
+        self.notebook = ttk.Notebook(self, style="CustomNotebook.TNotebook")
         self.notebook.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
         
         # Create three frames, a control panel and one for child info and one for schedule
-        self.child_control_panel_frame = ttk.Frame(self.notebook)
-        self.child_info_frame = ttk.Frame(self.notebook)
-        self.schedule_frame = ttk.Frame(self.notebook)
+        self.child_control_panel_frame = ttk.Frame(self.notebook, style="childrenControl.TFrame")
+        self.child_control_panel_frame.grid(sticky="nsew")
+        self.child_control_panel_frame.grid_rowconfigure(0, weight=1)
+        self.child_control_panel_frame.grid_columnconfigure(0, weight=1)
+        self.child_info_frame = ttk.Frame(self.notebook, style="childrenControl.TFrame")
+        self.schedule_frame = ttk.Frame(self.notebook, style="childrenControl.TFrame")
 
         # Add the frames as tabs in the notebook
         self.notebook.add(self.child_control_panel_frame, text="Control Panel")
@@ -98,44 +101,61 @@ class Children(tk.Toplevel):
 
     def create_control_panel_form(self, parent):
         """Create the child control panel in the first tab."""
-        panel_frame = ttk.Frame(parent)
+        panel_frame = ttk.Frame(parent, style="childrenControl.TFrame")
         panel_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        label_widget = ttk.Label(panel_frame, text="Creche Information", anchor="w", font=("Helvetica", 16))
+        parent.grid_rowconfigure(0, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+        panel_frame.grid_columnconfigure(0, weight=1)  # left content
+        panel_frame.grid_columnconfigure(1, weight=0)
+        panel_frame.grid_columnconfigure(2, weight=0)
+        panel_frame.grid_columnconfigure(3, weight=0)
+        panel_frame.grid_columnconfigure(4, weight=1)
+
+        label_widget = ttk.Label(panel_frame, text="Creche Information", anchor="w", font=("Arial", 16), background="#d9f1fb")
         label_widget.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
         total = children_db_utils.get_child_count()
-        label_widget = ttk.Label(panel_frame, text=f"Total Children: {total}", anchor="w", font=("Helvetica", 12))
+        label_widget = ttk.Label(panel_frame, text=f"Total Children: {total}", anchor="w", font=("Arial", 12), background="#d9f1fb")
         label_widget.grid(row=1, column=0, padx=5, pady=5, sticky="w")
 
         petits = children_db_utils.get_age_group_petits()
-        label_widget = ttk.Label(panel_frame, text=f"Petits Section: {petits}", anchor="w", font=("Helvetica", 12))
+        label_widget = ttk.Label(panel_frame, text=f"Petits Section: {petits}", anchor="w", font=("Arial", 12), background="#d9f1fb")
         label_widget.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
         moyens = children_db_utils.get_age_group_moyens()
-        label_widget = ttk.Label(panel_frame, text=f"Moyens Section: {moyens}", anchor="w", font=("Helvetica", 12))
+        label_widget = ttk.Label(panel_frame, text=f"Moyens Section: {moyens}", anchor="w", font=("Arial", 12), background="#d9f1fb")
         label_widget.grid(row=3, column=0, padx=5, pady=5, sticky="w")
         
         grands = children_db_utils.get_age_group_grands()
-        label_widget = ttk.Label(panel_frame, text=f"Grands Section: {grands}", anchor="w", font=("Helvetica", 12))
+        label_widget = ttk.Label(panel_frame, text=f"Grands Section: {grands}", anchor="w", font=("Arial", 12), background="#d9f1fb")
         label_widget.grid(row=4, column=0, padx=5, pady=5, sticky="w")
 
-        add_child_button = ttk.Button(panel_frame, text="Add New Child", command=self.add_new_child)
-        add_child_button.grid(row=0, column=4, padx=5, pady=5, sticky="e" )
+        add_child_button = ttk.Button(panel_frame, text="Add New Child", command=self.add_new_child, style="AddChild.TButton")
+        add_child_button.grid(row=0, column=4, padx=5, pady=5, sticky="w" )
 
-        edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info", command=self.edit_child_info)
-        edit_child_info_button.grid(row=1, column=4, padx=5, pady=5, sticky="e" )
+        edit_child_info_button = ttk.Button(panel_frame, text="Edit Child Info", command=self.edit_child_info, style="EditChild.TButton")
+        edit_child_info_button.grid(row=1, column=4, padx=5, pady=5, sticky="w" )
         
-        edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule", command=lambda: self.edit_child_schedule())
-        edit_child_schedule_button.grid(row=2, column=4, padx=5, pady=5, sticky="e" )
+        edit_child_schedule_button = ttk.Button(panel_frame, text="Edit Child Schedule", command=lambda: self.edit_child_schedule(), style="EditChild.TButton")
+        edit_child_schedule_button.grid(row=2, column=4, padx=5, pady=5, sticky="w" )
 
-        delete_child_button = ttk.Button(panel_frame, text="Delete Child", command=lambda: self.delete_child())
-        delete_child_button.grid(row=3, column=4, padx=5, pady=5, sticky="e" )
+        delete_child_button = ttk.Button(panel_frame, text="Delete Child", command=lambda: self.delete_child(), style="DeleteChild.TButton")
+        delete_child_button.grid(row=3, column=4, padx=5, pady=5, sticky="w" )
 
     def create_child_info_form(self, parent):
         """Create the child info form in the second tab."""
-        labels_frame = ttk.Frame(parent)
+        labels_frame = ttk.Frame(parent, style="childrenControl.TFrame")
         labels_frame.grid(row=0, column=0, padx=(10,10), pady=10, sticky="nsew")
+
+        labels_frame.columnconfigure(0, weight=0)
+        labels_frame.columnconfigure(1, weight=1)
+        labels_frame.columnconfigure(2, weight=0)
+        labels_frame.columnconfigure(3, weight=2)
+
+        parent.grid_rowconfigure(0, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
 
         # Create a list of labels
         labels = [
@@ -152,7 +172,7 @@ class Children(tk.Toplevel):
             row = i // 2  # Rows for label-entry pairs
             col = i % 2   # Columns 0 or 1
         
-            label_widget = ttk.Label(labels_frame, text=label, anchor="w", font=("Arial", 12))
+            label_widget = ttk.Label(labels_frame, text=label, anchor="w", font=("Arial", 12), background="#d9f1fb")
             label_widget.grid(row=row, column=col * 2, padx=5, pady=5, sticky="w")
         
             if label == "Date of Birth":
@@ -163,7 +183,7 @@ class Children(tk.Toplevel):
             elif label == "Year Group":
                 # Year Group dropdown (combobox)
                 year_group_options = ['Petits', 'Moyens', 'Grands']
-                year_group_combobox = ttk.Combobox(labels_frame, values=year_group_options, state="readonly", font=("Arial", 12))
+                year_group_combobox = ttk.Combobox(labels_frame, values=year_group_options, state="readonly", font=("Arial", 12), style="childDayInfo.TCombobox")
                 year_group_combobox.set("Petits")  # Default to "Petits"
                 year_group_combobox.grid(row=row, column=col * 2 + 1, padx=5, pady=5, sticky="ew")
                 entries.append(year_group_combobox)
@@ -175,10 +195,10 @@ class Children(tk.Toplevel):
                 entries.append(entry_widget)
 
         # Add buttons for navigation
-        cancel_button = ttk.Button(labels_frame, text="Cancel", command=self.cancel_process)
+        cancel_button = ttk.Button(labels_frame, text="Cancel", command=self.cancel_process, style="DeleteChild.TButton")
         cancel_button.grid(row=len(labels), column=0, padx=5, pady=10, sticky="w")
     
-        next_button = ttk.Button(labels_frame, text="Next", command=self.next_to_schedule)
+        next_button = ttk.Button(labels_frame, text="Next", command=self.next_to_schedule, style="AddChild.TButton")
         next_button.grid(row=len(labels), column=1, padx=5, pady=10, sticky="e")
 
         # Assign entry fields to the respective attributes
@@ -197,8 +217,18 @@ class Children(tk.Toplevel):
 
     def create_schedule_form(self, parent):
         """Create the weekly schedule form in the second tab."""
-        schedule_frame = ttk.LabelFrame(parent, text="Weekly Schedule (Arrival/Finish Times)", padding="10")
+        schedule_frame = ttk.LabelFrame(parent, text="Weekly Schedule (Arrival/Finish Times)", padding="10", style="childrenControl.TFrame")
         schedule_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        parent.grid_rowconfigure(0, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+        schedule_frame.columnconfigure(0, weight=0)  # checkbox
+        schedule_frame.columnconfigure(1, weight=1)  # day label
+        schedule_frame.columnconfigure(2, weight=0)  # "Arrival:"
+        schedule_frame.columnconfigure(3, weight=2)  # arrival dropdown
+        schedule_frame.columnconfigure(4, weight=0)  # "Finish:"
+        schedule_frame.columnconfigure(5, weight=2)  # finish dropdown
 
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
         self.arrival_entries = {}
@@ -212,42 +242,42 @@ class Children(tk.Toplevel):
         for idx, day in enumerate(days):
 
             # CheckButton for each day to indicate presence
-            day_toggle = ttk.Checkbutton(schedule_frame, text="Present", command=lambda day=day: self.toggle_day(day))
-            day_toggle.grid(row=idx, column=0, padx=5, pady=5, sticky="w")
+            day_toggle = ttk.Checkbutton(schedule_frame, text="Present", style="CustomCheck.TCheckbutton", command=lambda day=day: self.toggle_day(day))
+            day_toggle.grid(row=idx, column=0, pady=5, sticky="w")
             self.day_toggles[day] = day_toggle
 
-            day_label = ttk.Label(schedule_frame, text=f"{day}:")
-            day_label.grid(row=idx, column=1, padx=5, pady=5, sticky="w")
+            day_label = ttk.Label(schedule_frame, text=f"{day}:", background="#d9f1fb")
+            day_label.grid(row=idx, column=1, pady=5, sticky="w")
 
             # Arrival time dropdown
-            arrival_label = ttk.Label(schedule_frame, text="Arrival:")
-            arrival_label.grid(row=idx, column=2, padx=5, pady=5, sticky="w")
+            arrival_label = ttk.Label(schedule_frame, text="Arrival:", background="#d9f1fb")
+            arrival_label.grid(row=idx, column=2, pady=5, sticky="w")
 
             arrival_combobox = ttk.Combobox(schedule_frame, values=time_slots, font=("Arial", 12))
             arrival_combobox.set(time_slots[0])  # Default to the first time slot (7:30 AM)
-            arrival_combobox.grid(row=idx, column=3, padx=5, pady=5, sticky="ew")
+            arrival_combobox.grid(row=idx, column=3, pady=5, sticky="ew")
             self.arrival_entries[day] = arrival_combobox
 
             # Finish time dropdown
-            finish_label = ttk.Label(schedule_frame, text="Finish:")
-            finish_label.grid(row=idx, column=4, padx=5, pady=5, sticky="w")
+            finish_label = ttk.Label(schedule_frame, text="Finish:", background="#d9f1fb")
+            finish_label.grid(row=idx, column=4, pady=5, sticky="w")
 
             finish_combobox = ttk.Combobox(schedule_frame, values=time_slots, font=("Arial", 12))
             finish_combobox.set(time_slots[0])  # Default to the first time slot (7:30 AM)
-            finish_combobox.grid(row=idx, column=5, padx=5, pady=5, sticky="ew")
+            finish_combobox.grid(row=idx, column=5, pady=5, sticky="ew")
             self.finish_entries[day] = finish_combobox
 
             # Set Arrival and Finish fields to N/A by default (disabled if not selected)
             self.set_day_to_na(day, False)
 
             # Add buttons for navigation
-        cancel_button = ttk.Button(schedule_frame, text="Cancel", command=self.cancel_process)
+        cancel_button = ttk.Button(schedule_frame, text="Cancel", command=self.cancel_process, style="DeleteChild.TButton")
         cancel_button.grid(row=7, column=0, padx=5, pady=10, sticky="w")
     
-        back_button = ttk.Button(schedule_frame, text="Back", command=self.back_to_child_info)
+        back_button = ttk.Button(schedule_frame, text="Back", command=self.back_to_child_info, style="DeleteChild.TButton")
         back_button.grid(row=7, column=1, padx=5, pady=10, sticky="w")
     
-        finish_button = ttk.Button(schedule_frame, text="Finish", command=self.finish_process)
+        finish_button = ttk.Button(schedule_frame, text="Finish", command=self.finish_process, style="AddChild.TButton")
         finish_button.grid(row=7, column=2, padx=5, pady=10, sticky="e")
 
     def clear_form(self):
@@ -282,7 +312,7 @@ class Children(tk.Toplevel):
 
     def create_pupil_info(self):
         # Add the info box in the middle column (with border)
-        self.info_frame = ttk.Frame(self, relief="solid", borderwidth=2)
+        self.info_frame = ttk.Frame(self, relief="solid", borderwidth=2, style="childrenInfo.TFrame")
         self.info_frame.grid(row=0, column=2, padx=0, pady=0, sticky="nsew")
 
         # Configure grid to divide the info_frame into two columns and two rows
@@ -294,7 +324,7 @@ class Children(tk.Toplevel):
         # ---------------- Left Half ----------------
 
         # Add the name and dob fields (bottom half of the left side)
-        self.name_frame = ttk.Frame(self.info_frame)
+        self.name_frame = ttk.Frame(self.info_frame, style="childrenInfo.TFrame")
         self.name_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         # Load the image file (ensure the path is correct)
@@ -317,7 +347,7 @@ class Children(tk.Toplevel):
 
         # ---------------- Right Half ----------------
         # Placeholder for additional information labels (Right half will have 7 labels)
-        self.additional_info_frame = ttk.Frame(self.info_frame)
+        self.additional_info_frame = ttk.Frame(self.info_frame, style="childrenInfo.TFrame")
         self.additional_info_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")
 
         # Create label-value pairs for Right Half (Guardian Info)
@@ -333,7 +363,7 @@ class Children(tk.Toplevel):
         """ Helper function to create a label-value pair inside a box. """
     
         # Create a frame for the label-value pair to act like a box
-        pair_frame = ttk.Frame(parent_frame, relief="solid", borderwidth=1, padding=5)
+        pair_frame = ttk.Frame(parent_frame, relief="solid", borderwidth=1, padding=5, style="childrenInfo.TFrame")
         pair_frame.grid(row=row, column=col, padx=10, pady=0, sticky="nsew")
 
         # Configure this pair_frame to have equal width and height (boxes will be uniform size)
@@ -341,11 +371,11 @@ class Children(tk.Toplevel):
         parent_frame.grid_rowconfigure(row, weight=1)
 
         # Label part (displayed at the top of the box)
-        label = ttk.Label(pair_frame, text=label_text, anchor="w", font=("Helvetica", 10, "bold"))
+        label = ttk.Label(pair_frame, text=label_text, anchor="w", font=("Arial", 10, "bold"), foreground="white", background="#003366")
         label.pack(fill="x", pady=(0, 0))  # Label on top, with space below
 
         # Value part (displayed below the label in a different style)
-        value = ttk.Label(pair_frame, text="--", anchor="w", font=("Arial", 10), wraplength=400)
+        value = ttk.Label(pair_frame, text="--", anchor="w", font=("Arial", 10), foreground="white", background="#003366", wraplength=400)
         value.pack(fill="x", pady=(5, 5))  # Value below, with space above
 
         # Return both the label and value so they can be updated later
@@ -353,7 +383,7 @@ class Children(tk.Toplevel):
 
     def create_schedule_chart_frame(self):
         """Create the chart frame where the bar chart will be displayed."""
-        self.chart_frame = ttk.Frame(self)
+        self.chart_frame = ttk.Frame(self, style="childrenControl.TFrame")
         self.chart_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
         self.grid_rowconfigure(0, weight=1)
@@ -372,7 +402,7 @@ class Children(tk.Toplevel):
         fig, ax = plt.subplots(figsize=(6, 4))
 
         days_of_week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-        colors = ['lightcoral'] * 5
+        colors = ['#003366'] * 5
 
         start_time_base = datetime.strptime("07:30", "%H:%M")
         end_time_base = datetime.strptime("18:00", "%H:%M")
@@ -407,6 +437,8 @@ class Children(tk.Toplevel):
                 # In case parsing still fails
                 empty_start = datetime.strptime("07:30", "%H:%M")
                 ax.barh(day, 0, color='lightgrey', left=empty_start.hour + empty_start.minute / 60, height=0.6)
+
+        ax.invert_yaxis()
 
         ax.set_title(f"General Weekly Schedule for {child_name}")
         ax.set_xlabel("Time (Hours)")

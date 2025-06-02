@@ -33,12 +33,12 @@ class LoginWindow(tk.Toplevel):
         title_label.grid(row=0, column=0, pady=20)
     
         # Center username section
-        ttk.Label(self.login_frame, text="Username:", font=("Arial", 14, "bold"), background="#003366", foreground="white").grid(row=1, column=0, pady=5)
+        ttk.Label(self.login_frame, text="Username:", font=("Arial", 10, "bold"), background="#003366", foreground="white").grid(row=1, column=0, pady=5)
         self.username_entry = ttk.Entry(self.login_frame)
         self.username_entry.grid(row=2, column=0, pady=5, sticky='ew')
     
         # Center password section
-        ttk.Label(self.login_frame, text="Password:", font=("Arial", 14, "bold"), background="#003366", foreground="white").grid(row=3, column=0, pady=5)
+        ttk.Label(self.login_frame, text="Password:", font=("Arial", 10, "bold"), background="#003366", foreground="white").grid(row=3, column=0, pady=5)
         self.password_entry = ttk.Entry(self.login_frame, show="*")
         self.password_entry.grid(row=4, column=0, pady=5, sticky='ew')
     

@@ -44,6 +44,31 @@ def apply_styles():
     style.configure("dayInfoClose.TButton", background="#f4c2c2", foreground="black", font=("Arial", 12, "bold"), padding=(6, 5), borderwidth=1)
     style.map("dayInfoClose.TButton", background=[("active", "#ff69b4")])
 
+    #Children window data frame
+    style.configure("childrenInfo.TFrame", background="#003366")
+
+    #Children control frame
+    style.configure("childrenControl.TFrame", background="#d9f1fb")
+    style.configure("childrenControl.TFrame.Label", background="#d9f1fb")
+
+    #Add Child Btn
+    style.configure("AddChild.TButton", background="#b6e7a6", foreground="black", font=("Arial", 11, "bold"), padding=(6, 5), borderwidth=1)
+    style.map("AddChild.TButton", background=[("active", "#9bd18a")])
+
+    #Edit Child Btns
+    style.configure("EditChild.TButton", background="#2196F3", foreground="black", font=("Arial", 11, "bold"), padding=(6, 5), borderwidth=1)
+    style.map("EditChild.TButton", background=[("active", "#1976D2")])
+
+    #Delete Child Btn
+    style.configure("DeleteChild.TButton", background="#f4c2c2", foreground="black", font=("Arial", 11, "bold"), padding=(6, 5), borderwidth=1)
+    style.map("DeleteChild.TButton", background=[("active", "#e89cae")])
+
+    style.configure("CustomNotebook.TNotebook", background="#003366", padding=6)
+    style.configure("CustomNotebook.TNotebook.Tab", background="#003366", foreground="white", padding=6)
+    style.map("CustomNotebook.TNotebook.Tab", background=[("selected", "#ff7043")], foreground=[("selected", "white")])
+    
+    style.configure("CustomCheck.TCheckbutton", background="#d9f1fb", foreground="black", focuscolor="none")
+
     #Main Widget Frames
     style.configure("MainBg.TFrame", background="#d9f1fb")
     style.configure("MainBg.TFrame.Label", background="#d9f1fb")
