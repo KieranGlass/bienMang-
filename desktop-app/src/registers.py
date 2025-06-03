@@ -229,15 +229,12 @@ class Registers(tk.Toplevel):
         """Adjust the schedule for a child."""
         date_str = date.strftime("%Y-%m-%d")
         time_options = clock_utils.generate_time_slots()
-        print(f"{current_start} // {current_end}")
 
         adjustment_window = tk.Toplevel(self)
         adjustment_window.title(f"Adjust Schedule for {name}")
         adjustment_window.geometry("400x300")
         adjustment_window.resizable(True, True)
-
         adjustment_window.grab_set()
-
         adjustment_window.grid_rowconfigure(0, weight=1)
         adjustment_window.grid_columnconfigure(0, weight=1)
 

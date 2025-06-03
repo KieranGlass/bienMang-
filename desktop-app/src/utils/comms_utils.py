@@ -1,6 +1,8 @@
 import smtplib
 from email.mime.text import MIMEText
 
+from utils.db_utils import admin_db_utils
+
 
 
 def generate_plaintext_day_report(self, child_name, entry, include_starter=False):
@@ -29,8 +31,9 @@ def generate_plaintext_day_report(self, child_name, entry, include_starter=False
     return "\n".join(lines)
 
 def send_email(to_email, subject, body):
-    from_email = "kieranglass23@gmail.com"
-    password = "opma lnkh vfwy hydh" 
+    from_email = admin_db_utils.get_setting("notification_email")
+    print(f"{from_email}")
+    password = "opma lnkh vfwy hydh" # need to stop this from being hardcoded in  TODO
 
     msg = MIMEText(body)
     msg["Subject"] = subject
@@ -40,4 +43,7 @@ def send_email(to_email, subject, body):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_email, password)
         server.send_message(msg)
+
+
+
 

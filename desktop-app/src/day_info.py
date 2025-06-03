@@ -25,7 +25,7 @@ class DayInfoPage(tk.Toplevel):
         self.register_frame = ttk.Frame(self, style="dayInfoBackground.TFrame")
         self.register_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=20)
         
-        # Menu Label
+        # Menu Label 
         self.menu_label = tk.Label(self, text="Menus", font=("Arial", 14, "bold"), bg="#d9f1fb")
         self.menu_label.grid(row=3, column=0, pady=5, sticky="w", padx=10)
 

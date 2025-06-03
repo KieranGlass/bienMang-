@@ -14,3 +14,15 @@ services:
     restart: unless-stopped
     stdin_open: true  # Keep stdin open for interactive apps
     tty: true  # Allocate a pseudo-TTY
+
+  test:
+    build:
+      context: ./desktop-app
+      dockerfile: Dockerfile
+    environment:
+    - PYTHONPATH=/app/src
+    command: pytest tests/db_tests.py
+    volumes:
+      - ./desktop-app:/app  # Mount your full app source here
+    stdin_open: false
+    tty: false

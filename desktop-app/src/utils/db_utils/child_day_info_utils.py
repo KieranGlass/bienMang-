@@ -4,10 +4,9 @@ from . import common_db_utils
 
 
 def save_day_info(self, completed):
-
     child_id = self.child_id
     selected_date = self.selected_date
-
+    
     conn = common_db_utils.get_db_connection()
     with closing(conn.cursor()) as cursor:
         # Get current data from the UI
@@ -30,7 +29,6 @@ def save_day_info(self, completed):
             SELECT id FROM child_day_info WHERE child_id = ? AND date = ?
         ''', (child_id, selected_date))
         existing = cursor.fetchone()
-        print(f"{completed}")
         if existing:
             print("Updating existing record:", existing)
             # Update existing record

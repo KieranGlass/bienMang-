@@ -417,8 +417,7 @@ class Reports(tk.Toplevel):
         for child in common_db_utils.get_all_children():
             child_id = child[0]
             full_name = f"{child[1]} {child[3]}"
-            email = "kieranglass23@gmail.com"
-            print(f"{email}")
+            email = child[9]
             group = (child[5] or "").lower()
 
             entries = child_day_info_utils.get_data_for_dates(child_id, [selected_date])

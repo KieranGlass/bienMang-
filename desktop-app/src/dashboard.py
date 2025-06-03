@@ -10,8 +10,6 @@ from login import LoginWindow
 from day_info import DayInfoPage
 
 
-# TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
-
 class Dashboard(tk.Toplevel):
     
     def __init__(self, parent, root_app):
