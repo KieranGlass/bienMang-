@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from utils import calendar_utils, clock_utils, navigation_utils, comms_utils, styles
+from utils import calendar_utils, clock_utils, navigation_utils, comms_utils
 from utils.db_utils import common_db_utils, child_day_info_utils
 
 import tkinter as tk

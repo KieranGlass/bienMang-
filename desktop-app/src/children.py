@@ -4,20 +4,12 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 
-from utils import navigation_utils, clock_utils, styles
+from utils import navigation_utils, clock_utils
 from utils.db_utils import common_db_utils, children_db_utils
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from datetime import datetime, timedelta
-
-from PIL import Image, ImageTk
-
-'''
-TODO:
-- Design elements and buttons to pop and look nicer 
-- address how page looks when there are no entries
-'''
 
 class Children(tk.Toplevel):
     

@@ -4,11 +4,11 @@ from tkinter import ttk
 from tkcalendar import Calendar
 from datetime import date
 
-from utils import calendar_utils, clock_utils, navigation_utils, styles
+from utils import calendar_utils, navigation_utils, styles
 
 from login import LoginWindow
 from day_info import DayInfoPage
-from session_manager import SessionManager
+
 
 # TODO - When database entries are refused as duplicates, the system must not use up the ID numbers
 

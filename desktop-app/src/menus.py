@@ -1,4 +1,4 @@
-from utils import calendar_utils, clock_utils, navigation_utils, styles
+from utils import calendar_utils, navigation_utils
 from utils.db_utils import menus_db_utils
 
 
