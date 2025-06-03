@@ -327,17 +327,6 @@ class Children(tk.Toplevel):
         self.name_frame = ttk.Frame(self.info_frame, style="childrenInfo.TFrame")
         self.name_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        # Load the image file (ensure the path is correct)
-        image_path = "/app/src/resources/images/potter.PNG"  # Replace with actual path
-        img = Image.open(image_path)
-        img = img.resize((160, 140))  # Resize image as needed
-        photo = ImageTk.PhotoImage(img)
-
-        # Create a Label to display the image
-        label = tk.Label(self.name_frame, image=photo)
-        label.image = photo  # Keep a reference to the image
-        label.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-
         # Create label-value pairs for Left Half (Name and DOB)
         self.first_name_pair = self.create_label_value_pair(self.name_frame, "First Name", 1, 0)
         self.middle_name_pair = self.create_label_value_pair(self.name_frame, "Middle Name", 2, 0)
