@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile
     environment:
     - PYTHONPATH=/app/src
-    command: pytest tests/db_tests.py
+    command: pytest tests
     volumes:
       - ./desktop-app:/app  # Mount your full app source here
     stdin_open: false
