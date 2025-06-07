@@ -13,5 +13,5 @@ def get_all_children():
     with closing(conn.cursor()) as cursor:
         cursor.execute("SELECT * FROM children")
         children = cursor.fetchall()
-        
+    conn.close()
     return children

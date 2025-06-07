@@ -24,6 +24,7 @@ def search_existing_register(register_date_str, children):
                 cursor.execute('''INSERT INTO registers (date, child_id, adjusted_start_time, adjusted_end_time)
                                 VALUES (?, ?, ?, ?)''', (register_date_str, child_id, arrival_time, finish_time))
             conn.commit()
+    conn.close()
 
 def search_adjusted_schedule(register_date_str, child_id):
     """Check if there's an adjusted schedule for the day."""
@@ -32,6 +33,7 @@ def search_adjusted_schedule(register_date_str, child_id):
         cursor.execute('SELECT adjusted_start_time, adjusted_end_time FROM registers WHERE date = ? AND child_id = ?', 
                        (register_date_str, child_id))
         adjusted_schedule = cursor.fetchone()
+    conn.close()
     return adjusted_schedule
 
 def save_adjustment(date_str, child_id, start_entry, end_entry):

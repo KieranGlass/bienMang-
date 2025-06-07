@@ -9,7 +9,8 @@ def get_child(ID):
     conn = common_db_utils.get_db_connection()
     with closing(conn.cursor()) as cursor:
         cursor.execute("SELECT first_name, middle_name, last_name, birth_date, year_group, guardian_one_fname, guardian_one_lname, guardian_one_contact_no, guardian_one_email, guardian_two_fname, guardian_two_lname, guardian_two_contact_no FROM children WHERE id=?", (ID,))
-        child_data = cursor.fetchone() 
+        child_data = cursor.fetchone()
+    conn.close()
     return child_data
 
 def get_child_by_id(child_id):
@@ -51,6 +52,7 @@ def add_child(
             thursday_arrival, thursday_finish, friday_arrival, friday_finish
         ))
         conn.commit()
+    conn.close()
 
 def delete_child_from_db(ID):
     print(f"Deleting child with ID: {ID}")
@@ -58,6 +60,7 @@ def delete_child_from_db(ID):
     cursor = conn.cursor()
     cursor.execute("DELETE FROM Children WHERE id=?", (ID,))
     conn.commit()
+    conn.close()
 
 def get_child_count():
     conn = common_db_utils.get_db_connection()

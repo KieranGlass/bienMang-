@@ -39,4 +39,5 @@ def get_menu_by_date(selected_date):
     with closing(conn.cursor()) as cursor:
         cursor.execute('SELECT baby_main, baby_dessert, grands_starter, grands_main, grands_dessert FROM menus WHERE date = ?', (selected_date,))
         menu = cursor.fetchone()
+    conn.close()
     return menu

@@ -82,6 +82,7 @@ def delete_user(selected_user):
     cursor = conn.cursor()
     cursor.execute("DELETE FROM users WHERE username=?", (username,))
     conn.commit()
+    conn.close()
 
     
 def get_all_staff():
@@ -90,7 +91,7 @@ def get_all_staff():
     with closing(conn.cursor()) as cursor:
         cursor.execute("SELECT * FROM users")
         users = cursor.fetchall()
-
+    conn.close()
     return users
 
 def get_setting(key):
